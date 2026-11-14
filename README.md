@@ -7,16 +7,20 @@ de producción.
 ## Estado comprobable
 
 - El inventario del contrato COM confirma el CLSID
-  `{22D6F312-B0F6-11D0-94AB-0080C74C7E95}`, la interfaz dispinterface
-  `IMediaPlayer2` (IID `{20D4F5E0-5475-11D2-9774-0000F80855E6}`, 192 miembros
-  reportados) y el origen de eventos `_MediaPlayerEvents`.
+  `{22D6F312-B0F6-11D0-94AB-0080C74C7E95}`, el LIBID/version 1.0 y las
+  interfaces del Media Player 6.4. La evidencia del Type Library identifica
+  `IMediaPlayer2` como interfaz dual que hereda `IMediaPlayer`, y `_MediaPlayerEvents`
+  como dispinterface con 22 eventos. Esto corrige datos contradictorios del
+  inventario inicial; las fuentes y el alcance se explican en
+  [`docs/06-EVIDENCIA-TYPELIB.md`](docs/06-EVIDENCIA-TYPELIB.md).
 - El workflow de Windows Server 2022 compila un probe ATL x86 y verifica que
   sea PE32/x86. `ATLToolchainProbe.dll` **no es** un reproductor y no debe
   instalarse con Gold Premium.
-- El Type Library original completo, los tipos y firmas de sus 192 miembros,
-  los datos serializados de los tres controles y su comportamiento en el
-  contenedor VB6 todavía no están disponibles. No se declara ni se entrega un
-  control ActiveX sustituto mientras falte esa evidencia.
+- La referencia pública del Type Library da firmas y tipos exactos para las
+  interfaces estándar. No están disponibles aquí el binario original para
+  cotejarlo, los datos serializados de `frmPlayer`, el código/p-code de Gold ni
+  evidencia de qué miembros llama el programa. No se declara ni se entrega un
+  control ActiveX sustituto mientras falte la validación del anfitrión real.
 
 ## Compilación y registros
 

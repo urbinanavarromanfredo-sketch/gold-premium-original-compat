@@ -15,11 +15,16 @@ Un servidor COM en proceso (DLL) de 32 bits, construido con C++/ATL, que conserv
 ## Fases de entrega
 
 - **F0 — Toolchain:** esta primera entrega. Verifica MSVC x86 + ATL en runner Windows.
-- **F1 — Contrato:** completar IDL/typeinfo y leer la persistencia auténtica del control.
+- **F1 — Contrato:** comparar los imports públicos ya encontrados con el
+  Type Library original y leer la persistencia auténtica del control.
 - **F2 — Contenedor:** activar y persistir el control en un host OLE de prueba x86.
 - **F3 — Audio/eventos:** reproducir archivos de prueba en tres instancias independientes y validar estados/eventos.
 - **F4 — Integración aislada:** activar COM privado desde copia de Gold; verificar interfaz, botones y modos A–D.
 - **F5 — Paquete de prueba:** incluir EXE original sin modificar y DLL solo cuando todas las pruebas tengan evidencia.
+
+La evidencia de Type Library disponible corrige el inventario inicial; no
+demuestra aún que el control pueda sustituir los controles persistidos de Gold
+ni que el programa avance automáticamente al recibir `EndOfStream`.
 
 ## Activación privada
 

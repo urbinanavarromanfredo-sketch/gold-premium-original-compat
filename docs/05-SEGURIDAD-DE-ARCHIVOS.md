@@ -1,6 +1,9 @@
 # Política de archivos y despliegue
 
-- El repositorio debe ser privado.
+- El repositorio de GitHub está actualmente configurado como público. No
+  cargar aquí ejecutables, archivos originales o materiales de producción;
+  usar un repositorio privado antes de compartir cualquier artefacto con
+  derechos o datos sensibles.
 - No subir `Gold.exe`, respaldos, `Gold.INI`, `DBMusica.mdb`, carpetas de música, listas de reproducción ni datos de estación.
 - Las pruebas futuras deben usar una copia aislada del EXE y audio sintético/de prueba.
 - No ejecutar `regsvr32` ni `DllRegisterServer` contra el CLSID original.

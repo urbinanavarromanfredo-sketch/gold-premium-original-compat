@@ -12,25 +12,49 @@
   },
   "type_library": {
     "libid": "{22D6F304-B0F6-11D0-94AB-0080C74C7E95}",
-    "version": "not-yet-verified"
+    "version": "1.0",
+    "version_evidence": "Generated Type Library import identifies MSDXM.OCX (1), LIBID 22D6F304-B0F6-11D0-94AB-0080C74C7E95."
   },
-  "default_dispatch_interface": {
+  "default_automation_interface": {
     "name": "IMediaPlayer2",
     "iid": "{20D4F5E0-5475-11D2-9774-0000F80855E6}",
-    "typekind": "TKIND_DISPATCH",
-    "reported_member_count": 192
+    "typekind": "TKIND_INTERFACE",
+    "flags": ["dual", "oleautomation", "dispatchable"],
+    "base_interface": {
+      "name": "IMediaPlayer",
+      "iid": "{22D6F311-B0F6-11D0-94AB-0080C74C7E95}"
+    },
+    "reported_member_count": 192,
+    "member_count_note": "The imported type library exposes 178 IMediaPlayer methods plus 7 IMediaPlayer2 methods. The reported total of 192 is consistent with those 185 methods plus the 7 IUnknown/IDispatch slots; it is not the number of methods declared directly by IMediaPlayer2."
   },
   "default_source_dispinterface": {
     "name": "_MediaPlayerEvents",
     "iid": "{2D3A4C40-E711-11D0-94AB-0080C74C7E95}",
-    "reported_member_count": 20,
+    "typekind": "TKIND_DISPATCH",
+    "reported_member_count": 22,
     "known_events": [
-      {"name": "EndOfStream", "dispid": 3002, "parameter_names": ["Result"]},
-      {"name": "OpenStateChange", "dispid": 3011, "parameter_names": ["OldState", "NewState"]},
-      {"name": "PlayStateChange", "dispid": 3012, "parameter_names": ["OldState", "NewState"]},
-      {"name": "Buffering", "dispid": 3003, "parameter_names": ["Start"]},
-      {"name": "Error", "dispid": 3010, "parameter_names": []},
-      {"name": "ReadyStateChange", "dispid": -609, "parameter_names": ["ReadyState"]}
+      {"name": "DVDNotify", "dispid": 1505, "parameters": [{"name": "EventCode", "type": "LONG"}, {"name": "EventParam1", "type": "LONG"}, {"name": "EventParam2", "type": "LONG"}]},
+      {"name": "EndOfStream", "dispid": 3002, "parameters": [{"name": "Result", "type": "LONG"}]},
+      {"name": "KeyDown", "dispid": -602, "parameters": [{"name": "KeyCode", "type": "SHORT"}, {"name": "ShiftState", "type": "SHORT"}]},
+      {"name": "KeyUp", "dispid": -604, "parameters": [{"name": "KeyCode", "type": "SHORT"}, {"name": "ShiftState", "type": "SHORT"}]},
+      {"name": "KeyPress", "dispid": -603, "parameters": [{"name": "CharacterCode", "type": "SHORT"}]},
+      {"name": "MouseMove", "dispid": -606, "parameters": [{"name": "Button", "type": "SHORT"}, {"name": "ShiftState", "type": "SHORT"}, {"name": "x", "type": "OLE_XPOS_PIXELS"}, {"name": "y", "type": "OLE_YPOS_PIXELS"}]},
+      {"name": "MouseDown", "dispid": -605, "parameters": [{"name": "Button", "type": "SHORT"}, {"name": "ShiftState", "type": "SHORT"}, {"name": "x", "type": "OLE_XPOS_PIXELS"}, {"name": "y", "type": "OLE_YPOS_PIXELS"}]},
+      {"name": "MouseUp", "dispid": -607, "parameters": [{"name": "Button", "type": "SHORT"}, {"name": "ShiftState", "type": "SHORT"}, {"name": "x", "type": "OLE_XPOS_PIXELS"}, {"name": "y", "type": "OLE_YPOS_PIXELS"}]},
+      {"name": "Click", "dispid": -600, "parameters": [{"name": "Button", "type": "SHORT"}, {"name": "ShiftState", "type": "SHORT"}, {"name": "x", "type": "OLE_XPOS_PIXELS"}, {"name": "y", "type": "OLE_YPOS_PIXELS"}]},
+      {"name": "DblClick", "dispid": -601, "parameters": [{"name": "Button", "type": "SHORT"}, {"name": "ShiftState", "type": "SHORT"}, {"name": "x", "type": "OLE_XPOS_PIXELS"}, {"name": "y", "type": "OLE_YPOS_PIXELS"}]},
+      {"name": "OpenStateChange", "dispid": 3011, "parameters": [{"name": "OldState", "type": "LONG"}, {"name": "NewState", "type": "LONG"}]},
+      {"name": "PlayStateChange", "dispid": 3012, "parameters": [{"name": "OldState", "type": "LONG"}, {"name": "NewState", "type": "LONG"}]},
+      {"name": "ScriptCommand", "dispid": 3001, "parameters": [{"name": "scType", "type": "BSTR"}, {"name": "Param", "type": "BSTR"}]},
+      {"name": "Buffering", "dispid": 3003, "parameters": [{"name": "Start", "type": "VARIANT_BOOL"}]},
+      {"name": "Error", "dispid": 3010, "parameters": []},
+      {"name": "MarkerHit", "dispid": 3006, "parameters": [{"name": "MarkerNum", "type": "LONG"}]},
+      {"name": "Warning", "dispid": 3009, "parameters": [{"name": "WarningType", "type": "LONG"}, {"name": "Param", "type": "LONG"}, {"name": "Description", "type": "BSTR"}]},
+      {"name": "NewStream", "dispid": 3008, "parameters": []},
+      {"name": "Disconnect", "dispid": 3004, "parameters": [{"name": "Result", "type": "LONG"}]},
+      {"name": "PositionChange", "dispid": 2, "parameters": [{"name": "oldPosition", "type": "DOUBLE"}, {"name": "newPosition", "type": "DOUBLE"}]},
+      {"name": "DisplayModeChange", "dispid": 51, "parameters": []},
+      {"name": "ReadyStateChange", "dispid": -609, "parameters": [{"name": "ReadyState", "type": "ReadyStateConstants"}]}
     ]
   },
   "connection_points": [
@@ -39,23 +63,20 @@
     "{B6CD6553-E9CB-11D0-821F-00A0C91F9CA0}"
   ],
   "known_automation_members": [
-    {"name": "FileName", "dispid": 1026, "invoke": ["PROPERTYGET", "PROPERTYPUT"]},
-    {"name": "Duration", "dispid": 1003, "invoke": ["PROPERTYGET"]},
-    {"name": "CurrentPosition", "dispid": 1027, "invoke": ["PROPERTYGET", "PROPERTYPUT"]},
-    {"name": "PlayState", "dispid": 1068, "invoke": ["PROPERTYGET"]},
-    {"name": "SendPlayStateChangeEvents", "dispid": 1069, "invoke": ["PROPERTYGET", "PROPERTYPUT"]},
-    {"name": "SendOpenStateChangeEvents", "dispid": 1062, "invoke": ["PROPERTYGET", "PROPERTYPUT"]},
-    {"name": "Volume", "dispid": 19, "invoke": ["PROPERTYGET", "PROPERTYPUT"]},
-    {"name": "Balance", "dispid": 20, "invoke": ["PROPERTYGET", "PROPERTYPUT"]},
-    {"name": "Play", "dispid": 2001, "invoke": ["FUNC"]},
-    {"name": "Pause", "dispid": 2002, "invoke": ["FUNC"]},
-    {"name": "Stop", "dispid": 2003, "invoke": ["FUNC"]},
-    {"name": "Open", "dispid": 2010, "invoke": ["FUNC"]}
+    {"name": "FileName", "dispid": 1026, "invoke": ["PROPERTYGET", "PROPERTYPUT"], "type": "BSTR"},
+    {"name": "Duration", "dispid": 1003, "invoke": ["PROPERTYGET"], "type": "DOUBLE"},
+    {"name": "CurrentPosition", "dispid": 1027, "invoke": ["PROPERTYGET", "PROPERTYPUT"], "type": "DOUBLE"},
+    {"name": "PlayState", "dispid": 1068, "invoke": ["PROPERTYGET"], "type": "MPPlayStateConstants"},
+    {"name": "SendPlayStateChangeEvents", "dispid": 1069, "invoke": ["PROPERTYGET", "PROPERTYPUT"], "type": "VARIANT_BOOL"},
+    {"name": "SendOpenStateChangeEvents", "dispid": 1062, "invoke": ["PROPERTYGET", "PROPERTYPUT"], "type": "VARIANT_BOOL"},
+    {"name": "Volume", "dispid": 19, "invoke": ["PROPERTYGET", "PROPERTYPUT"], "type": "LONG"},
+    {"name": "Balance", "dispid": 20, "invoke": ["PROPERTYGET", "PROPERTYPUT"], "type": "LONG"},
+    {"name": "Play", "dispid": 2001, "invoke": ["FUNC"], "return": "void", "parameters": []},
+    {"name": "Pause", "dispid": 2002, "invoke": ["FUNC"], "return": "void", "parameters": []},
+    {"name": "Stop", "dispid": 2003, "invoke": ["FUNC"], "return": "void", "parameters": []},
+    {"name": "Open", "dispid": 2010, "invoke": ["FUNC"], "return": "void", "parameters": [{"name": "bstrFileName", "type": "BSTR", "direction": "in"}]}
   ],
   "unverified": [
-    "all parameter and return types",
-    "all 192 members and exact invocation signatures",
-    "type-library version and registered typelib binary",
     "persisted control property state",
     "role of each of the three embedded control instances"
   ]

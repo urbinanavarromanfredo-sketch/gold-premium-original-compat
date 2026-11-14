@@ -15,6 +15,14 @@ Not included: a replacement ActiveX control, a playback backend, a repaired
 Gold.exe, or a tested Windows 10/11 integration package.
 ATLToolchainProbe.dll is only a compiler probe; it is not the player control.
 
-Blocker for the real control: the original Type Library's exact signatures and
-types, and the control's persisted VB6 properties, have not been supplied.
-Do not claim compatibility or build a production DLL from the partial inventory.
+New contract evidence: public imports of MSDXM.OCX version 1.0 provide the
+dual-interface IMediaPlayer/IMediaPlayer2 signatures and all 22
+_MediaPlayerEvents signatures. This corrects the earlier claim that
+IMediaPlayer2 is TKIND_DISPATCH and that the event source has 20 members.
+These metadata references have not yet been compared byte-for-byte with the
+original machine's Type Library.
+
+Blockers for a tested compatibility control: the Gold Premium V12 project is
+not in the repository or Actions artifacts; the original frmPlayer persisted
+control data, actual calls made by Gold, and a safe isolated Gold test fixture
+are also unavailable. No ActiveX replacement or installer is claimed.

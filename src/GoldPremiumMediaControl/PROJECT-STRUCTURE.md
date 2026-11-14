@@ -20,4 +20,9 @@ src/GoldPremiumMediaControl/
 
 ## Regla importante de diseño
 
-El objeto final no debe declarar `IMediaPlayer2` como una interfaz dual improvisada. El inventario original informa `TKIND_DISPATCH`; Microsoft documenta que `IDispatchImpl` se orienta a interfaces duales. Debe conservarse un `IDispatch` Automation con el type information `TKIND_DISPATCH` correspondiente, o demostrarse con el typelib original que existe otra vía compatible.
+El objeto final debe declarar `IMediaPlayer2` con la forma dual y la herencia
+del Type Library histórico de `MSDXM.OCX` 1.0; no como una dispinterface
+inventada. Los imports disponibles indican `IMediaPlayer2 : IMediaPlayer`.
+La evidencia y la discrepancia con el inventario V4 están documentadas en
+[`docs/06-EVIDENCIA-TYPELIB.md`](../../docs/06-EVIDENCIA-TYPELIB.md). La
+persistencia real de VB6 sigue pendiente.
