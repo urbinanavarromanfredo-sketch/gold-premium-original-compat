@@ -15,12 +15,12 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE, DWORD reason, LPVOID reserved)
     return _AtlModule.DllMain(reason, reserved);
 }
 
-extern "C" __declspec(dllexport) HRESULT WINAPI DllCanUnloadNow()
+STDAPI DllCanUnloadNow(void)
 {
     return _AtlModule.DllCanUnloadNow();
 }
 
-extern "C" __declspec(dllexport) HRESULT WINAPI DllGetClassObject(
+STDAPI DllGetClassObject(
     REFCLSID classId,
     REFIID interfaceId,
     LPVOID* object)

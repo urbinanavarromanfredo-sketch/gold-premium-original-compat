@@ -391,7 +391,7 @@
     HRESULT STDMETHODCALLTYPE get_DisplaySize(MPDisplaySizeConstants* pRetVal) noexcept
     {
         if (pRetVal == nullptr) return E_POINTER;
-        *pRetVal = 0;
+        *pRetVal = static_cast<MPDisplaySizeConstants>(0);
         return E_NOTIMPL;
     }
 
@@ -490,7 +490,7 @@
     HRESULT STDMETHODCALLTYPE get_ReadyState(MPReadyStateConstants* pRetVal) noexcept
     {
         if (pRetVal == nullptr) return E_POINTER;
-        *pRetVal = 0;
+        *pRetVal = static_cast<MPReadyStateConstants>(0);
         return E_NOTIMPL;
     }
 
@@ -640,7 +640,7 @@
     HRESULT STDMETHODCALLTYPE get_DisplayMode(MPDisplayModeConstants* pRetVal) noexcept
     {
         if (pRetVal == nullptr) return E_POINTER;
-        *pRetVal = 0;
+        *pRetVal = static_cast<MPDisplayModeConstants>(0);
         return E_NOTIMPL;
     }
 

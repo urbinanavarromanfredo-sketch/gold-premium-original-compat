@@ -45,6 +45,7 @@ public:
     ~CMediaPlayer();
 
     DECLARE_NOT_AGGREGATABLE(CMediaPlayer)
+    DECLARE_NO_REGISTRY()
     DECLARE_PROTECT_FINAL_CONSTRUCT()
 
     HRESULT FinalConstruct() noexcept;
