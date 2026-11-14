@@ -12,6 +12,10 @@ namespace
 {
     const CLSID CLSID_MediaPlayer =
         {0x22D6F312, 0xB0F6, 0x11D0, {0x94, 0xAB, 0x00, 0x80, 0xC7, 0x4C, 0x7E, 0x95}};
+    const IID IID_IMediaPlayer =
+        {0x22D6F311, 0xB0F6, 0x11D0, {0x94, 0xAB, 0x00, 0x80, 0xC7, 0x4C, 0x7E, 0x95}};
+    const IID IID_IMediaPlayer2 =
+        {0x20D4F5E0, 0x5475, 0x11D2, {0x97, 0x74, 0x00, 0x00, 0xF8, 0x08, 0x55, 0xE6}};
     const IID DIID_MediaPlayerEvents =
         {0x2D3A4C40, 0xE711, 0x11D0, {0x94, 0xAB, 0x00, 0x80, 0xC7, 0x4C, 0x7E, 0x95}};
 
@@ -256,6 +260,28 @@ namespace
             if (!CheckHr(player->QueryInterface(IID_PPV_ARGS(&oleObject)), "QI IOleObject") ||
                 !CheckHr(player->QueryInterface(IID_PPV_ARGS(&persistence)), "QI IPersistStreamInit"))
             {
+                return false;
+            }
+            IUnknown* mediaPlayer = nullptr;
+            IUnknown* mediaPlayer2 = nullptr;
+            const HRESULT baseInterfaceResult = player->QueryInterface(
+                IID_IMediaPlayer, reinterpret_cast<void**>(&mediaPlayer));
+            const HRESULT derivedInterfaceResult = player->QueryInterface(
+                IID_IMediaPlayer2, reinterpret_cast<void**>(&mediaPlayer2));
+            if (!CheckHr(baseInterfaceResult, "QI IMediaPlayer") ||
+                !CheckHr(derivedInterfaceResult, "QI IMediaPlayer2"))
+            {
+                if (mediaPlayer != nullptr) mediaPlayer->Release();
+                if (mediaPlayer2 != nullptr) mediaPlayer2->Release();
+                return false;
+            }
+            mediaPlayer->Release();
+            mediaPlayer2->Release();
+            CLSID reportedClsid{};
+            if (!CheckHr(oleObject->GetUserClassID(&reportedClsid), "IOleObject::GetUserClassID") ||
+                !IsEqualCLSID(reportedClsid, CLSID_MediaPlayer))
+            {
+                std::fprintf(stderr, "The OLE object reported an unexpected CLSID.\n");
                 return false;
             }
         }

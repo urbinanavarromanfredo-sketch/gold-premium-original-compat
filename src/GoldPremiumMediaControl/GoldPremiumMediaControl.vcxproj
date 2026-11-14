@@ -69,7 +69,7 @@
       <InterfaceIdentifierFileName>$(IntDir)GoldPremiumMediaControl_i.c</InterfaceIdentifierFileName>
       <ProxyFileName>$(IntDir)GoldPremiumMediaControl_p.c</ProxyFileName>
       <DLLDataFileName>$(IntDir)dlldata.c</DLLDataFileName>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>4</WarningLevel>
       <ValidateAllParameters>true</ValidateAllParameters>
     </Midl>
     <Link>
