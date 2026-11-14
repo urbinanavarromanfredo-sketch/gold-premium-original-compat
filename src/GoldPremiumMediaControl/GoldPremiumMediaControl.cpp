@@ -9,6 +9,39 @@ namespace
     constexpr REFERENCE_TIME kReferenceTimePerSecond = 10'000'000;
     constexpr LONG kOpenStateClosed = 0;
     constexpr LONG kOpenStateOpen = 6;
+
+    HRESULT LoadEmbeddedTypeInfo(REFGUID typeInfoId, ITypeInfo** typeInfo) noexcept
+    {
+        if (typeInfo == nullptr)
+        {
+            return E_POINTER;
+        }
+        *typeInfo = nullptr;
+
+        HMODULE module = nullptr;
+        if (!GetModuleHandleExW(
+                GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                reinterpret_cast<LPCWSTR>(&LoadEmbeddedTypeInfo),
+                &module))
+        {
+            return HRESULT_FROM_WIN32(GetLastError());
+        }
+
+        WCHAR modulePath[32768]{};
+        const DWORD pathLength = GetModuleFileNameW(module, modulePath, ARRAYSIZE(modulePath));
+        if (pathLength == 0 || pathLength >= ARRAYSIZE(modulePath))
+        {
+            return HRESULT_FROM_WIN32(pathLength == 0 ? GetLastError() : ERROR_INSUFFICIENT_BUFFER);
+        }
+
+        ATL::CComPtr<ITypeLib> typeLibrary;
+        HRESULT hr = LoadTypeLibEx(modulePath, REGKIND_NONE, &typeLibrary);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+        return typeLibrary->GetTypeInfoOfGuid(typeInfoId, typeInfo);
+    }
 }
 
 CMediaPlayer::CMediaPlayer() noexcept
@@ -29,6 +62,16 @@ CMediaPlayer::~CMediaPlayer()
 
 HRESULT CMediaPlayer::FinalConstruct() noexcept
 {
+    HRESULT hr = LoadEmbeddedTypeInfo(CLSID_MediaPlayer, &m_classTypeInfo);
+    if (SUCCEEDED(hr))
+    {
+        hr = LoadEmbeddedTypeInfo(IID_IMediaPlayer2, &m_dispatchTypeInfo);
+    }
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
     if (m_notifyWindow.Create(HWND_MESSAGE) == nullptr)
     {
         const DWORD error = GetLastError();
@@ -55,6 +98,84 @@ HRESULT CMediaPlayer::OnDraw(ATL_DRAWINFO& drawInfo)
     return brush != nullptr && bounds != nullptr && FillRect(drawInfo.hdcDraw, bounds, brush)
         ? S_OK
         : HRESULT_FROM_WIN32(GetLastError());
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::GetTypeInfoCount(UINT* count) noexcept
+{
+    if (count == nullptr)
+    {
+        return E_POINTER;
+    }
+    *count = 1;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::GetTypeInfo(
+    UINT index, LCID, ITypeInfo** typeInfo) noexcept
+{
+    if (typeInfo == nullptr)
+    {
+        return E_POINTER;
+    }
+    *typeInfo = nullptr;
+    if (index != 0)
+    {
+        return DISP_E_BADINDEX;
+    }
+    return m_dispatchTypeInfo.CopyTo(typeInfo);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::GetIDsOfNames(
+    REFIID interfaceId, LPOLESTR* names, UINT nameCount, LCID, DISPID* dispIds) noexcept
+{
+    if (!IsEqualIID(interfaceId, IID_NULL))
+    {
+        return DISP_E_UNKNOWNINTERFACE;
+    }
+    return m_dispatchTypeInfo->GetIDsOfNames(names, nameCount, dispIds);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::Invoke(
+    DISPID dispId,
+    REFIID interfaceId,
+    LCID,
+    WORD flags,
+    DISPPARAMS* parameters,
+    VARIANT* result,
+    EXCEPINFO* exceptionInfo,
+    UINT* argumentError) noexcept
+{
+    if (!IsEqualIID(interfaceId, IID_NULL))
+    {
+        return DISP_E_UNKNOWNINTERFACE;
+    }
+    return m_dispatchTypeInfo->Invoke(
+        static_cast<IMediaPlayer2*>(this), dispId, flags, parameters,
+        result, exceptionInfo, argumentError);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::GetClassInfo(ITypeInfo** typeInfo) noexcept
+{
+    if (typeInfo == nullptr)
+    {
+        return E_POINTER;
+    }
+    *typeInfo = nullptr;
+    return m_classTypeInfo.CopyTo(typeInfo);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::GetGUID(DWORD guidKind, GUID* guid) noexcept
+{
+    if (guid == nullptr)
+    {
+        return E_POINTER;
+    }
+    if (guidKind != GUIDKIND_DEFAULT_SOURCE_DISP_IID)
+    {
+        return E_INVALIDARG;
+    }
+    *guid = DIID__MediaPlayerEvents;
+    return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE CMediaPlayer::get_CurrentPosition(DOUBLE* value) noexcept

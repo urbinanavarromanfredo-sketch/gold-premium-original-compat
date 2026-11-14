@@ -51,6 +51,14 @@ public:
     HRESULT FinalConstruct() noexcept;
     void FinalRelease() noexcept;
     HRESULT OnDraw(ATL_DRAWINFO& drawInfo);
+    HRESULT STDMETHODCALLTYPE GetTypeInfoCount(UINT* count) noexcept override;
+    HRESULT STDMETHODCALLTYPE GetTypeInfo(UINT index, LCID localeId, ITypeInfo** typeInfo) noexcept override;
+    HRESULT STDMETHODCALLTYPE GetIDsOfNames(REFIID interfaceId, LPOLESTR* names, UINT nameCount,
+        LCID localeId, DISPID* dispIds) noexcept override;
+    HRESULT STDMETHODCALLTYPE Invoke(DISPID dispId, REFIID interfaceId, LCID localeId, WORD flags,
+        DISPPARAMS* parameters, VARIANT* result, EXCEPINFO* exceptionInfo, UINT* argumentError) noexcept override;
+    HRESULT STDMETHODCALLTYPE GetClassInfo(ITypeInfo** typeInfo) noexcept override;
+    HRESULT STDMETHODCALLTYPE GetGUID(DWORD guidKind, GUID* guid) noexcept override;
     HRESULT STDMETHODCALLTYPE get_CurrentPosition(DOUBLE* value) noexcept;
     HRESULT STDMETHODCALLTYPE put_CurrentPosition(DOUBLE value) noexcept;
     HRESULT STDMETHODCALLTYPE get_Duration(DOUBLE* value) noexcept;
@@ -121,6 +129,8 @@ private:
     void HandleGraphNotify() noexcept;
 
     ATL::CComBSTR m_fileName;
+    ATL::CComPtr<ITypeInfo> m_classTypeInfo;
+    ATL::CComPtr<ITypeInfo> m_dispatchTypeInfo;
     CMediaPlayerNotifyWindow m_notifyWindow;
     ATL::CComPtr<IGraphBuilder> m_graph;
     ATL::CComPtr<IMediaControl> m_mediaControl;

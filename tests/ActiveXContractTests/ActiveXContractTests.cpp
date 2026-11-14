@@ -284,6 +284,28 @@ namespace
                 std::fprintf(stderr, "The OLE object reported an unexpected CLSID.\n");
                 return false;
             }
+
+            UINT typeInfoCount = 0;
+            ATL::CComPtr<ITypeInfo> dispatchTypeInfo;
+            ATL::CComPtr<IProvideClassInfo2> classInfoProvider;
+            ATL::CComPtr<ITypeInfo> classTypeInfo;
+            GUID defaultSourceInterface{};
+            if (!CheckHr(player->GetTypeInfoCount(&typeInfoCount), "IDispatch::GetTypeInfoCount") ||
+                typeInfoCount != 1 ||
+                !CheckHr(player->GetTypeInfo(0, LOCALE_USER_DEFAULT, &dispatchTypeInfo),
+                    "IDispatch::GetTypeInfo") ||
+                !CheckHr(player->QueryInterface(IID_PPV_ARGS(&classInfoProvider)),
+                    "QI IProvideClassInfo2") ||
+                !CheckHr(classInfoProvider->GetClassInfo(&classTypeInfo),
+                    "IProvideClassInfo::GetClassInfo") ||
+                !CheckHr(classInfoProvider->GetGUID(
+                    GUIDKIND_DEFAULT_SOURCE_DISP_IID, &defaultSourceInterface),
+                    "IProvideClassInfo2::GetGUID") ||
+                !IsEqualIID(defaultSourceInterface, DIID_MediaPlayerEvents))
+            {
+                std::fprintf(stderr, "Private type information was unavailable to the OLE host.\n");
+                return false;
+            }
         }
 
         if (!PutLong(players[0], kVolume, -1000) ||
