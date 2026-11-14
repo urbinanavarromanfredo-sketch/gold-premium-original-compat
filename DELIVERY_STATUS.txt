@@ -1,0 +1,17 @@
+DELIVERY STATUS — TOOLCHAIN PROBE AND CONTRACT INVENTORY
+
+Repository state: starter project files are present in the working tree.
+Windows Server 2022 build: NOT RUN in this local Linux environment.
+GitHub Actions result: NOT PUBLISHED; no run has been verified.
+
+Included: ATL x86 toolchain probe, Windows Server 2022 workflow, COM contract
+inventory, OLE requirements, and a reg-free COM manifest example.
+The workflow retains diagnostic MSBuild text and binary logs as an artifact.
+
+Not included: a replacement ActiveX control, a playback backend, a repaired
+Gold.exe, or a tested Windows 10/11 integration package.
+ATLToolchainProbe.dll is only a compiler probe; it is not the player control.
+
+Blocker for the real control: the original Type Library's exact signatures and
+types, and the control's persisted VB6 properties, have not been supplied.
+Do not claim compatibility or build a production DLL from the partial inventory.

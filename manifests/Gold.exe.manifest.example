@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- PLANTILLA DE INVESTIGACIÓN. NO INSTALAR TODAVÍA.
+     Solo será válida cuando exista GoldPremiumMediaControl.dll real,
+     con el CLSID y LIBID/type library que se declaran aquí. -->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity
+      type="win32"
+      name="GoldPremium.PrivateMediaCompat"
+      version="1.0.0.0"
+      processorArchitecture="x86" />
+  <file name="GoldPremiumMediaControl.dll">
+    <comClass
+        clsid="{22D6F312-B0F6-11D0-94AB-0080C74C7E95}"
+        threadingModel="Apartment"
+        tlbid="{22D6F304-B0F6-11D0-94AB-0080C74C7E95}"
+        progid="MediaPlayer.MediaPlayer.1"
+        description="Gold Premium private MediaPlayer compatibility control" />
+    <typelib
+        tlbid="{22D6F304-B0F6-11D0-94AB-0080C74C7E95}"
+        version="1.0"
+        helpdir="." />
+  </file>
+</assembly>

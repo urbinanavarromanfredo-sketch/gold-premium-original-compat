@@ -1,0 +1,64 @@
+name: ATL x86 toolchain probe
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-atl-x86:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout private project
+        uses: actions/checkout@v4
+
+      - name: Locate MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Initialize MSVC x86 environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+
+      - name: Verify ATL headers are installed
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path $vswhere)) { throw 'vswhere.exe no encontrado.' }
+          $vs = & $vswhere -latest -products '*' -property installationPath
+          if (-not $vs) { throw 'Visual Studio 2022 no encontrado.' }
+          $atl = Get-ChildItem (Join-Path $vs 'VC\Tools\MSVC') -Filter atlbase.h -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $atl) { throw 'ATL no está instalado en este runner.' }
+          Write-Host "ATL encontrado: $($atl.FullName)"
+
+      - name: Build ATL probe as Win32
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts\logs | Out-Null
+          msbuild src\ToolchainProbe\ATLToolchainProbe.vcxproj /m /v:minimal /p:Configuration=Release /p:Platform=Win32 /bl:artifacts\logs\ATLToolchainProbe.binlog "/flp:logfile=artifacts\logs\ATLToolchainProbe-msbuild.log;verbosity=diagnostic"
+          if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación ATL Win32. Consulte el artefacto de registros.' }
+
+      - name: Verify PE machine is x86
+        shell: pwsh
+        run: |
+          ./scripts/verify-probe.ps1 -BinaryPath './artifacts/Win32/Release/ATLToolchainProbe.dll'
+
+      - name: Upload toolchain probe artifact (not the player replacement)
+        uses: actions/upload-artifact@v4
+        with:
+          name: atl-toolchain-probe-x86
+          path: artifacts/Win32/Release/ATLToolchainProbe.dll
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload MSBuild logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atl-toolchain-build-logs
+          path: artifacts/logs/
+          if-no-files-found: warn
+          retention-days: 90

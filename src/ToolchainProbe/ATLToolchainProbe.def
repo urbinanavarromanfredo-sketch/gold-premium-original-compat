@@ -1,0 +1,4 @@
+LIBRARY "ATLToolchainProbe"
+EXPORTS
+    DllCanUnloadNow PRIVATE
+    DllGetClassObject PRIVATE

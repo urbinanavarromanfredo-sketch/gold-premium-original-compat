@@ -1,0 +1,12 @@
+.vs/
+obj/
+artifacts/
+*.user
+*.suo
+*.pdb
+*.ilk
+*.pch
+*.obj
+*.idb
+*.tlog/
+*.lastbuildstate
