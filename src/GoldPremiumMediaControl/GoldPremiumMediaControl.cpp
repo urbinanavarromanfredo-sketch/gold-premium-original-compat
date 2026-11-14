@@ -78,7 +78,7 @@ namespace
         }
 
         ATL::CComPtr<IFilterGraph2> graph2;
-        hr = graph.QueryInterface(&graph2);
+        hr = graph->QueryInterface(IID_PPV_ARGS(&graph2));
         if (FAILED(hr))
         {
             return hr;
