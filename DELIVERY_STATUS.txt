@@ -1,12 +1,15 @@
 DELIVERY STATUS — TOOLCHAIN PROBE AND CONTRACT INVENTORY
 
-Repository state: starter project files are present in the working tree.
-Windows Server 2022 build: NOT RUN in this local Linux environment.
-GitHub Actions result: NOT PUBLISHED; no run has been verified.
+Repository state: starter project files are published at commit
+547a22f54e930ca096b130b7598cb3d293cf7f0e.
+Windows Server 2022 build: SUCCESS, GitHub Actions run 43555052228
+(2026-11-14); MSBuild reported 0 errors and 0 warnings, and PE x86 verification
+passed.
 
 Included: ATL x86 toolchain probe, Windows Server 2022 workflow, COM contract
 inventory, OLE requirements, and a reg-free COM manifest example.
-The workflow retains diagnostic MSBuild text and binary logs as an artifact.
+The workflow retains diagnostic MSBuild text and binary logs as the
+atl-toolchain-build-logs artifact for 90 days.
 
 Not included: a replacement ActiveX control, a playback backend, a repaired
 Gold.exe, or a tested Windows 10/11 integration package.

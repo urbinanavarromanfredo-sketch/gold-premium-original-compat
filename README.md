@@ -25,9 +25,11 @@ El artefacto `atl-toolchain-probe-x86` solo demuestra la compilación x86. Los
 registros de MSBuild (texto diagnóstico y binlog) se publican por separado,
 incluso si la compilación falla.
 
-El resultado real de GitHub Actions debe consultarse en la ejecución del
-workflow; no se considera compilado hasta que esa ejecución termine
-satisfactoriamente.
+La ejecución [43555052228](https://github.com/urbinanavarromanfredo-sketch/gold-premium-original-compat/actions/runs/43555052228)
+finalizó correctamente: MSBuild reportó 0 errores y 0 advertencias, y la
+verificación confirmó PE x86. El resultado corresponde solo al probe, no a un
+reproductor. Los registros se conservarán como artefacto de Actions durante
+90 días.
 
 ## Límites de seguridad
 
