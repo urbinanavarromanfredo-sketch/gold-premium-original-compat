@@ -2,6 +2,7 @@
 #include "GoldPremiumMediaControl.h"
 #include <cmath>
 #include <limits>
+#include <uuids.h>
 
 namespace
 {
