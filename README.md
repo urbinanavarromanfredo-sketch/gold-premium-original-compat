@@ -1,0 +1,1 @@
+# gold-premium-original-compat
