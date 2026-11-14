@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "GoldPremiumMediaControl.h"
 #include <cmath>
+#include <cstdio>
 #include <limits>
 
 namespace
@@ -12,6 +13,11 @@ namespace
     constexpr WCHAR kTypeLibraryResourceSuffix[] = L"\\101";
     constexpr CLSID kNullRendererClassId =
         {0xC1F400A4, 0x3F08, 0x11D3, {0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37}};
+
+    void TraceFailure(const char* operation, HRESULT hr) noexcept
+    {
+        std::fprintf(stderr, "%s failed: 0x%08lx\n", operation, static_cast<unsigned long>(hr));
+    }
 
     HRESULT LoadEmbeddedTypeInfo(REFGUID typeInfoId, ITypeInfo** typeInfo) noexcept
     {
@@ -61,6 +67,7 @@ namespace
         HRESULT hr = graph->AddSourceFilter(fileName, L"Media file", &source);
         if (FAILED(hr))
         {
+            TraceFailure("AddSourceFilter", hr);
             return hr;
         }
 
@@ -69,11 +76,13 @@ namespace
             kNullRendererClassId, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&nullRenderer));
         if (FAILED(hr))
         {
+            TraceFailure("CoCreateInstance Null Renderer", hr);
             return hr;
         }
         hr = graph->AddFilter(nullRenderer, L"Null audio renderer");
         if (FAILED(hr))
         {
+            TraceFailure("AddFilter Null Renderer", hr);
             return hr;
         }
 
@@ -81,6 +90,7 @@ namespace
         hr = graph->QueryInterface(IID_PPV_ARGS(&graph2));
         if (FAILED(hr))
         {
+            TraceFailure("QueryInterface IFilterGraph2", hr);
             return hr;
         }
 
@@ -88,6 +98,7 @@ namespace
         hr = source->EnumPins(&pins);
         if (FAILED(hr))
         {
+            TraceFailure("Source EnumPins", hr);
             return hr;
         }
 
@@ -99,6 +110,7 @@ namespace
             hr = pin->QueryDirection(&direction);
             if (FAILED(hr))
             {
+                TraceFailure("Source pin QueryDirection", hr);
                 return hr;
             }
             if (direction == PINDIR_OUTPUT)
@@ -109,13 +121,19 @@ namespace
                     nullptr);
                 if (FAILED(hr))
                 {
+                    TraceFailure("IFilterGraph2::RenderEx", hr);
                     return hr;
                 }
                 ++renderedOutputs;
             }
             pin.Release();
         }
-        return renderedOutputs == 0 ? VFW_E_NOT_FOUND : S_OK;
+        if (renderedOutputs == 0)
+        {
+            TraceFailure("Render media outputs", VFW_E_NOT_FOUND);
+            return VFW_E_NOT_FOUND;
+        }
+        return S_OK;
     }
 }
 
@@ -483,6 +501,7 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
     hr = graph->RenderFile(fileName, nullptr);
     if (hr == VFW_E_NO_AUDIO_HARDWARE)
     {
+        TraceFailure("RenderFile without audio hardware", hr);
         graph.Release();
         hr = CoCreateInstance(
             CLSID_FilterGraph,
@@ -492,10 +511,15 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
         if (SUCCEEDED(hr))
         {
             hr = RenderAudioWithoutDevice(graph, fileName);
+            if (FAILED(hr))
+            {
+                TraceFailure("RenderAudioWithoutDevice", hr);
+            }
         }
     }
     if (FAILED(hr))
     {
+        TraceFailure("OpenGraph", hr);
         return hr;
     }
 
