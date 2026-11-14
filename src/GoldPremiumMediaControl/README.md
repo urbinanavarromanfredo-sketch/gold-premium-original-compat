@@ -1,20 +1,41 @@
-# Control ActiveX real — pendiente de implementación
+# Implementación ATL ActiveX — estado de desarrollo
 
-Esta carpeta reserva el proyecto de producción. No contiene una DLL utilizable todavía.
+Esta carpeta contiene un proyecto ATL `CComControl` x86 y el IDL derivado de
+los imports históricos documentados de MSDXM.OCX 1.0. Es código en desarrollo,
+**no un reemplazo terminado ni distribuible**.
 
-## Base de clase que debe implementar
+## Implementado en el código fuente
 
-- Servidor in-process Win32/x86 con ATL.
-- Coclass/CLSID esperado: `{22D6F312-B0F6-11D0-94AB-0080C74C7E95}`.
-- Interfaz Automation `IMediaPlayer2` IID `{20D4F5E0-5475-11D2-9774-0000F80855E6}`; los imports del Type Library la identifican como dual y derivada de `IMediaPlayer`.
-- Event source `_MediaPlayerEvents` IID `{2D3A4C40-E711-11D0-94AB-0080C74C7E95}`.
-- Soporte de OLE hosting, visualización, activación, persistencia y connection points.
-- Estado y backend separados por instancia para no mezclar los tres reproductores.
+- CLSID del control, LIBID, herencia dual de `IMediaPlayer2`, DISPIDs de
+  Automation y declaración del origen de 22 eventos.
+- Interfaces OLE/ActiveX, `IPersistStreamInit`, un grafo DirectShow por
+  instancia, apertura de MP3, controles de reproducción, duración/posición,
+  volumen y balance.
+- Connection points por instancia para `PlayStateChange`, `OpenStateChange`
+  y `EndOfStream`.
+- Manifiesto de activación privada para las pruebas x86. La DLL no exporta
+  `DllRegisterServer` ni escribe un registro COM global.
 
-## Estado
+## Limitaciones — no integrar todavía con Gold
 
-Esta carpeta aún no contiene implementación. Las firmas de las interfaces y
-los eventos estándar se han recuperado de imports públicos coincidentes por
-identificadores. Falta cotejarlos con el Type Library original y obtener la
-persistencia y el uso real de `frmPlayer`. No se debe compilar ni distribuir
-una DLL de producción antes de superar esas verificaciones.
+- El typelib exacto no se ha cotejado con el `MSDXM.OCX` de la máquina XP
+  original; la evidencia disponible son imports públicos.
+- Los otros 166 métodos de `IMediaPlayer`/`IMediaPlayer2` conservan firmas
+  declaradas y devuelven `E_NOTIMPL`. Tener esos slots no significa que la
+  interfaz completa sea compatible.
+- Se desconocen las propiedades persistidas por el formulario original y las
+  llamadas que efectivamente hace Gold.exe. El mapa de persistencia actual
+  contiene solo cinco propiedades.
+- `OpenStateChange` usa 0 (cerrado) y 6 (abierto), valores corroborados en un
+  cliente público antiguo de Windows Media Player, no en el typelib binario
+  original de Gold.
+- El host de pruebas cubre interfaces COM, estado, propiedades, persistencia,
+  reproducción y eventos; no aloja el control en VB6 ni ejecuta Gold.
+- El usuario confirmó que existe el archivo diagnóstico V12, pero no está
+  materializado en los archivos accesibles de esta sesión. El diagnóstico
+  debe integrarse en un target separado y no forma parte de esta DLL.
+
+El workflow de GitHub compila IDL/ATL como Win32 y ejecuta las pruebas con un
+MP3 sintético. Aunque pase en Windows Server, eso no verifica Windows 10/11 ni
+la integración con Gold Premium. No generar instalador ni Release mientras
+persistan las limitaciones anteriores.

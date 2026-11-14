@@ -1,4 +1,4 @@
-# Arquitectura propuesta
+# Arquitectura y estado de implementación
 
 ## Límite del reemplazo
 
@@ -9,23 +9,32 @@ Un servidor COM en proceso (DLL) de 32 bits, construido con C++/ATL, que conserv
 1. **ActiveX/OLE host layer:** ciclo de vida, activación, ventana, propiedades persistentes y negociación con el contenedor VB6.
 2. **Automation compatibility layer:** IID `IMediaPlayer2`, DISPIDs y tipos correctos; métodos/propiedades usados por Gold.
 3. **Event connection layer:** `_MediaPlayerEvents` y DISPIDs originales, con orden/argumentos compatibles.
-4. **Playback engine:** backend nativo Windows (la decisión final se tomará al implementar y probar audio), separado por instancia.
+4. **Playback engine:** grafo DirectShow independiente por instancia; queda pendiente confirmar la disponibilidad del decodificador/renderizador en los entornos objetivo.
 5. **Diagnostics/tests:** logs, tests unitarios y anfitrión de integración x86; sin rutas de producción.
 
 ## Fases de entrega
 
-- **F0 — Toolchain:** esta primera entrega. Verifica MSVC x86 + ATL en runner Windows.
-- **F1 — Contrato:** comparar los imports públicos ya encontrados con el
-  Type Library original y leer la persistencia auténtica del control.
-- **F2 — Contenedor:** activar y persistir el control en un host OLE de prueba x86.
-- **F3 — Audio/eventos:** reproducir archivos de prueba en tres instancias independientes y validar estados/eventos.
+- **F0 — Toolchain:** completada anteriormente para el probe, no para el ActiveX nuevo.
+- **F1 — Contrato:** el IDL inicial y los DISPIDs están en el árbol; MIDL aún debe compilarse y falta cotejo binario con el Type Library original. Las propiedades históricas del formulario siguen sin confirmar.
+- **F2 — Contenedor:** el esqueleto ATL y el host de activación privada están escritos; compilación y prueba OLE real pendientes.
+- **F3 — Audio/eventos:** implementados en código con un grafo DirectShow por instancia; falta ejecutar las pruebas x86 en Windows.
 - **F4 — Integración aislada:** activar COM privado desde copia de Gold; verificar interfaz, botones y modos A–D.
 - **F5 — Paquete de prueba:** incluir EXE original sin modificar y DLL solo cuando todas las pruebas tengan evidencia.
 
-La evidencia de Type Library disponible corrige el inventario inicial; no
-demuestra aún que el control pueda sustituir los controles persistidos de Gold
-ni que el programa avance automáticamente al recibir `EndOfStream`.
+Las pruebas nuevas están preparadas para el workflow, no ejecutadas todavía.
+166 métodos estándar devuelven `E_NOTIMPL`, por lo que la clase no debe
+presentarse como reemplazo compatible. Tampoco se sabe si Gold avanza al
+recibir `EndOfStream`: el test de cliente solo comprueba que un cliente pueda
+iniciar la siguiente pista al recibir ese evento.
 
 ## Activación privada
 
-El camino a evaluar es un manifiesto Side-by-Side junto al EXE, con el CLSID original redirigido a una DLL local. Microsoft documenta que los contextos de activación pueden resolver una clase COM desde el manifiesto antes de consultar el Registro. Eso evita registrar o sustituir globalmente el componente; no elimina la necesidad de comprobar el manifiesto que use el EXE y su contexto real.
+El host de pruebas usa un manifiesto Side-by-Side activado en el proceso y
+redirige el CLSID a una DLL local, sin registrar globalmente la clase. Esto
+prueba el mecanismo en el host de prueba; no demuestra todavía la activación
+en el ejecutable original de Gold ni resuelve la integración sin modificar sus
+archivos.
+
+El diagnóstico V12 se mantendrá en un target separado. El usuario confirma
+que su ZIP existe, pero el archivo no está materializado en esta sesión; no se
+ha copiado ni mezclado código diagnóstico con el ActiveX.

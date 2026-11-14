@@ -1,0 +1,4 @@
+LIBRARY "GoldPremium_Compat_ActiveX_x86"
+EXPORTS
+    DllCanUnloadNow PRIVATE
+    DllGetClassObject PRIVATE

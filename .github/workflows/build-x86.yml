@@ -1,4 +1,4 @@
-name: ATL x86 toolchain probe
+name: ATL x86 build and contract tests
 
 on:
   push:
@@ -41,12 +41,52 @@ jobs:
           msbuild src\ToolchainProbe\ATLToolchainProbe.vcxproj /m /v:minimal /p:Configuration=Release /p:Platform=Win32 /bl:artifacts\logs\ATLToolchainProbe.binlog "/flp:logfile=artifacts\logs\ATLToolchainProbe-msbuild.log;verbosity=diagnostic"
           if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación ATL Win32. Consulte el artefacto de registros.' }
 
-      - name: Verify PE machine is x86
+      - name: Build the compatibility ActiveX and test host
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts\logs, artifacts\test-results | Out-Null
+          msbuild src\GoldPremiumMediaControl\GoldPremiumMediaControl.vcxproj /m /v:minimal /p:Configuration=Release /p:Platform=Win32 /bl:artifacts\logs\GoldPremiumMediaControl.binlog "/flp:logfile=artifacts\logs\GoldPremiumMediaControl-msbuild.log;verbosity=diagnostic"
+          if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación MIDL/ATL del ActiveX.' }
+          msbuild tests\ActiveXContractTests\ActiveXContractTests.vcxproj /m /v:minimal /p:Configuration=Release /p:Platform=Win32 /bl:artifacts\logs\ActiveXContractTests.binlog "/flp:logfile=artifacts\logs\ActiveXContractTests-msbuild.log;verbosity=diagnostic"
+          if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación del host de pruebas COM.' }
+          Copy-Item tests\ActiveXContractTests\ActiveXContractTests.manifest artifacts\Win32\Release\ActiveXContractTests.manifest -Force
+
+      - name: Verify ActiveX PE machine is x86
+        shell: pwsh
+        run: |
+          ./scripts/verify-probe.ps1 -BinaryPath './artifacts/Win32/Release/GoldPremium_Compat_ActiveX_x86.dll'
+
+      - name: Generate a synthetic MP3 test fixture
+        shell: pwsh
+        run: |
+          $ffmpegCommand = Get-Command ffmpeg.exe -ErrorAction SilentlyContinue
+          if ($ffmpegCommand) {
+            $ffmpegPath = $ffmpegCommand.Source
+          } else {
+            choco install ffmpeg --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw 'No fue posible instalar FFmpeg para generar el audio sintético de prueba.' }
+            $ffmpegPath = Join-Path $env:ProgramData 'chocolatey\bin\ffmpeg.exe'
+            if (-not (Test-Path $ffmpegPath)) { throw 'FFmpeg no apareció en el PATH de Chocolatey.' }
+          }
+          $fixture = Join-Path $env:GITHUB_WORKSPACE 'artifacts\test-results\compatibility-tone.mp3'
+          & $ffmpegPath -hide_banner -loglevel error -f lavfi -i 'sine=frequency=440:sample_rate=44100:duration=1.5' -codec:a libmp3lame -b:a 64k -y $fixture
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $fixture)) { throw 'No se pudo generar el MP3 sintético.' }
+
+      - name: Run private-activation COM and playback tests
+        shell: pwsh
+        run: |
+          $testExe = Join-Path $env:GITHUB_WORKSPACE 'artifacts\Win32\Release\ActiveXContractTests.exe'
+          $fixture = Join-Path $env:GITHUB_WORKSPACE 'artifacts\test-results\compatibility-tone.mp3'
+          & $testExe $fixture 2>&1 | Tee-Object -FilePath artifacts\test-results\ActiveXContractTests.txt
+          $testExitCode = $LASTEXITCODE
+          if ($testExitCode -ne 0) { throw "ActiveX COM/playback tests failed with exit code $testExitCode." }
+
+      - name: Verify ATL toolchain probe PE machine is x86
         shell: pwsh
         run: |
           ./scripts/verify-probe.ps1 -BinaryPath './artifacts/Win32/Release/ATLToolchainProbe.dll'
 
-      - name: Upload toolchain probe artifact (not the player replacement)
+      - name: Upload toolchain probe artifact (diagnostic only)
         uses: actions/upload-artifact@v4
         with:
           name: atl-toolchain-probe-x86
@@ -54,11 +94,13 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload MSBuild logs
+      - name: Upload ActiveX test results and MSBuild logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: atl-toolchain-build-logs
-          path: artifacts/logs/
+          name: activex-x86-build-and-test-logs
+          path: |
+            artifacts/logs/
+            artifacts/test-results/
           if-no-files-found: warn
           retention-days: 90

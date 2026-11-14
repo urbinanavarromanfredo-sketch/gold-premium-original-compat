@@ -55,6 +55,11 @@ firma de dos parámetros.
    1.0, flags `Dual OleAutomation Dispatchable`, DISPIDs y tipos.
 3. [IDL de `_MediaPlayerEvents`](https://github.com/tongzx/nt5src/blob/daad8a087a4e75422ec96b7911f1df4669989611/Source/XPSP1/NT/inetcore/mshtml/src/time/idl/mediaprivate.idl):
    define el IID, los DISPIDs y los parámetros del origen de eventos.
+4. [Cliente público de Windows Media Player para MSN TV](https://github.com/polybiusproxy/msn_tv2/blob/2bd452723ca39b48a99d3526bc5287db466dcda7/web/Media/media.htm):
+   usa `MpOpenStateCLOSED = 0`, `MpOpenStateOPEN = 6` y documenta los valores
+   intermedios 1–5 y 7–8. La implementación actual solo emite los estados 0 y
+   6 para cerrado/abierto; esta evidencia de cliente antiguo no sustituye el
+   cotejo con el typelib del equipo Gold.
 
 Son espejos públicos de artefactos generados a partir de Type Libraries
 históricos, no una copia del binario Type Library del equipo de Gold Premium.
@@ -65,8 +70,9 @@ del formulario ni qué miembros Gold usa.
 
 ## Qué falta para integración
 
-- `GoldPremium_COM_V12_Tres_Reproductores.zip` no está en el repositorio ni
-  entre los artefactos de Actions disponibles.
+- El usuario confirma que `GoldPremium_COM_V12_Tres_Reproductores.zip`
+  existe, pero el archivo no está materializado entre los archivos accesibles
+  en esta sesión. El diagnóstico no se ha importado ni integrado.
 - No están los datos `.frm/.frx` persistidos de los tres controles ni el mapa
   de llamadas/p-code de Gold.
 - No hay un Gold de prueba autorizado y aislado ni medios de prueba adjuntos

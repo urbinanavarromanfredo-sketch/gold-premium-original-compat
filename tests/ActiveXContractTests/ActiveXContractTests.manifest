@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity
+    name="GoldPremium.Compat.ActiveXContractTests"
+    version="1.0.0.0"
+    processorArchitecture="x86"
+    type="win32"/>
+  <file name="GoldPremium_Compat_ActiveX_x86.dll">
+    <comClass
+      clsid="{22D6F312-B0F6-11D0-94AB-0080C74C7E95}"
+      threadingModel="Apartment"
+      tlbid="{22D6F304-B0F6-11D0-94AB-0080C74C7E95}"
+      progid="GoldPremiumMediaPlayer.MediaPlayer"
+      description="Gold Premium compatibility media control"/>
+    <typelib
+      tlbid="{22D6F304-B0F6-11D0-94AB-0080C74C7E95}"
+      version="1.0"
+      helpdir=""/>
+  </file>
+</assembly>

@@ -1,0 +1,416 @@
+// Signatures derived from the MSDXM.OCX 1.0 Type Library imports; see docs/06-EVIDENCIA-TYPELIB.md.
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+    uuid(22D6F304-B0F6-11D0-94AB-0080C74C7E95),
+    version(1.0),
+    helpstring("Gold Premium Media Player compatibility type library")
+]
+library GoldPremiumMediaPlayerLib
+{
+    importlib("stdole2.tlb");
+    typedef unsigned long VB_OLE_COLOR;
+
+typedef enum ReadyStateConstants {
+    amvUninitialized = 0,
+    amvLoading = 1,
+    amvInteractive = 3,
+    amvComplete = 4
+} ReadyStateConstants;
+
+typedef enum MPPlayStateConstants {
+    mpStopped = 0,
+    mpPaused = 1,
+    mpPlaying = 2,
+    mpWaiting = 3,
+    mpScanForward = 4,
+    mpScanReverse = 5,
+    mpClosed = 6
+} MPPlayStateConstants;
+
+typedef enum MPDisplaySizeConstants {
+    mpDefaultSize = 0,
+    mpHalfSize = 1,
+    mpDoubleSize = 2,
+    mpFullScreen = 3,
+    mpFitToSize = 4,
+    mpOneSixteenthScreen = 5,
+    mpOneFourthScreen = 6,
+    mpOneHalfScreen = 7
+} MPDisplaySizeConstants;
+
+typedef enum MPReadyStateConstants {
+    mpReadyStateUninitialized = 0,
+    mpReadyStateLoading = 1,
+    mpReadyStateInteractive = 3,
+    mpReadyStateComplete = 4
+} MPReadyStateConstants;
+
+typedef enum MPDisplayModeConstants {
+    mpTime = 0,
+    mpFrames = 1
+} MPDisplayModeConstants;
+
+typedef enum MPMoreInfoType {
+    mpShowURL = 0,
+    mpClipURL = 1,
+    mpBannerURL = 2
+} MPMoreInfoType;
+
+typedef enum MPMediaInfoType {
+    mpShowFilename = 0,
+    mpShowTitle = 1,
+    mpShowAuthor = 2,
+    mpShowCopyright = 3,
+    mpShowRating = 4,
+    mpShowDescription = 5,
+    mpShowLogoIcon = 6,
+    mpClipFilename = 7,
+    mpClipTitle = 8,
+    mpClipAuthor = 9,
+    mpClipCopyright = 10,
+    mpClipRating = 11,
+    mpClipDescription = 12,
+    mpClipLogoIcon = 13,
+    mpBannerImage = 14,
+    mpBannerMoreInfo = 15,
+    mpWatermark = 16
+} MPMediaInfoType;
+
+typedef enum MPShowDialogConstants {
+    mpShowDialogHelp = 0,
+    mpShowDialogStatistics = 1,
+    mpShowDialogOptions = 2,
+    mpShowDialogContextMenu = 3
+} MPShowDialogConstants;
+
+typedef enum DVDMenuIDConstants {
+    dvdMenu_Title = 2,
+    dvdMenu_Root = 3,
+    dvdMenu_Subpicture = 4,
+    dvdMenu_Audio = 5,
+    dvdMenu_Angle = 6,
+    dvdMenu_Chapter = 7
+} DVDMenuIDConstants;
+
+[
+    object,
+    dual,
+    oleautomation,
+    uuid(22D6F311-B0F6-11D0-94AB-0080C74C7E95),
+    pointer_default(unique)
+]
+interface IMediaPlayer : IDispatch
+{
+    [propget, id(1027)] HRESULT CurrentPosition([out, retval] DOUBLE *pRetVal);
+    [propput, id(1027)] HRESULT CurrentPosition([in] DOUBLE newValue);
+    [propget, id(1003)] HRESULT Duration([out, retval] DOUBLE *pRetVal);
+    [propget, id(1001)] HRESULT ImageSourceWidth([out, retval] LONG *pRetVal);
+    [propget, id(1002)] HRESULT ImageSourceHeight([out, retval] LONG *pRetVal);
+    [propget, id(1010)] HRESULT MarkerCount([out, retval] LONG *pRetVal);
+    [propget, id(1011)] HRESULT CanScan([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1012)] HRESULT CanSeek([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1047)] HRESULT CanSeekToMarkers([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1029)] HRESULT CurrentMarker([out, retval] LONG *pRetVal);
+    [propput, id(1029)] HRESULT CurrentMarker([in] LONG newValue);
+    [propget, id(1026)] HRESULT FileName([out, retval] BSTR *pRetVal);
+    [propput, id(1026)] HRESULT FileName([in] BSTR newValue);
+    [propget, id(1009)] HRESULT SourceLink([out, retval] BSTR *pRetVal);
+    [propget, id(1036)] HRESULT CreationDate([out, retval] DATE *pRetVal);
+    [propget, id(1038)] HRESULT ErrorCorrection([out, retval] BSTR *pRetVal);
+    [propget, id(1037)] HRESULT Bandwidth([out, retval] LONG *pRetVal);
+    [propget, id(1060)] HRESULT SourceProtocol([out, retval] LONG *pRetVal);
+    [propget, id(1039)] HRESULT ReceivedPackets([out, retval] LONG *pRetVal);
+    [propget, id(1040)] HRESULT RecoveredPackets([out, retval] LONG *pRetVal);
+    [propget, id(1041)] HRESULT LostPackets([out, retval] LONG *pRetVal);
+    [propget, id(1042)] HRESULT ReceptionQuality([out, retval] LONG *pRetVal);
+    [propget, id(1043)] HRESULT BufferingCount([out, retval] LONG *pRetVal);
+    [propget, id(1058)] HRESULT IsBroadcast([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1080)] HRESULT BufferingProgress([out, retval] LONG *pRetVal);
+    [propget, id(1050)] HRESULT ChannelName([out, retval] BSTR *pRetVal);
+    [propget, id(1051)] HRESULT ChannelDescription([out, retval] BSTR *pRetVal);
+    [propget, id(1052)] HRESULT ChannelURL([out, retval] BSTR *pRetVal);
+    [propget, id(1053)] HRESULT ContactAddress([out, retval] BSTR *pRetVal);
+    [propget, id(1054)] HRESULT ContactPhone([out, retval] BSTR *pRetVal);
+    [propget, id(1055)] HRESULT ContactEmail([out, retval] BSTR *pRetVal);
+    [propget, id(1070)] HRESULT BufferingTime([out, retval] DOUBLE *pRetVal);
+    [propput, id(1070)] HRESULT BufferingTime([in] DOUBLE newValue);
+    [propget, id(1017)] HRESULT AutoStart([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1017)] HRESULT AutoStart([in] VARIANT_BOOL newValue);
+    [propget, id(1018)] HRESULT AutoRewind([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1018)] HRESULT AutoRewind([in] VARIANT_BOOL newValue);
+    [propget, id(1028)] HRESULT Rate([out, retval] DOUBLE *pRetVal);
+    [propput, id(1028)] HRESULT Rate([in] DOUBLE newValue);
+    [propget, id(1013)] HRESULT SendKeyboardEvents([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1013)] HRESULT SendKeyboardEvents([in] VARIANT_BOOL newValue);
+    [propget, id(1014)] HRESULT SendMouseClickEvents([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1014)] HRESULT SendMouseClickEvents([in] VARIANT_BOOL newValue);
+    [propget, id(1015)] HRESULT SendMouseMoveEvents([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1015)] HRESULT SendMouseMoveEvents([in] VARIANT_BOOL newValue);
+    [propget, id(1030)] HRESULT PlayCount([out, retval] LONG *pRetVal);
+    [propput, id(1030)] HRESULT PlayCount([in] LONG newValue);
+    [propget, id(1025)] HRESULT ClickToPlay([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1025)] HRESULT ClickToPlay([in] VARIANT_BOOL newValue);
+    [propget, id(1035)] HRESULT AllowScan([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1035)] HRESULT AllowScan([in] VARIANT_BOOL newValue);
+    [propget, id(1021)] HRESULT EnableContextMenu([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1021)] HRESULT EnableContextMenu([in] VARIANT_BOOL newValue);
+    [propget, id(1044)] HRESULT CursorType([out, retval] LONG *pRetVal);
+    [propput, id(1044)] HRESULT CursorType([in] LONG newValue);
+    [propget, id(1057)] HRESULT CodecCount([out, retval] LONG *pRetVal);
+    [propget, id(1056)] HRESULT AllowChangeDisplaySize([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1056)] HRESULT AllowChangeDisplaySize([in] VARIANT_BOOL newValue);
+    [propget, id(1059)] HRESULT IsDurationValid([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1061)] HRESULT OpenState([out, retval] LONG *pRetVal);
+    [propget, id(1062)] HRESULT SendOpenStateChangeEvents([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1062)] HRESULT SendOpenStateChangeEvents([in] VARIANT_BOOL newValue);
+    [propget, id(1063)] HRESULT SendWarningEvents([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1063)] HRESULT SendWarningEvents([in] VARIANT_BOOL newValue);
+    [propget, id(1064)] HRESULT SendErrorEvents([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1064)] HRESULT SendErrorEvents([in] VARIANT_BOOL newValue);
+    [propget, id(1068)] HRESULT PlayState([out, retval] enum MPPlayStateConstants *pRetVal);
+    [propget, id(1069)] HRESULT SendPlayStateChangeEvents([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1069)] HRESULT SendPlayStateChangeEvents([in] VARIANT_BOOL newValue);
+    [propget, id(1032)] HRESULT DisplaySize([out, retval] enum MPDisplaySizeConstants *pRetVal);
+    [propput, id(1032)] HRESULT DisplaySize([in] enum MPDisplaySizeConstants newValue);
+    [propget, id(1020)] HRESULT InvokeURLs([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1020)] HRESULT InvokeURLs([in] VARIANT_BOOL newValue);
+    [propget, id(1082)] HRESULT BaseURL([out, retval] BSTR *pRetVal);
+    [propput, id(1082)] HRESULT BaseURL([in] BSTR newValue);
+    [propget, id(1083)] HRESULT DefaultFrame([out, retval] BSTR *pRetVal);
+    [propput, id(1083)] HRESULT DefaultFrame([in] BSTR newValue);
+    [propget, id(1065)] HRESULT HasError([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1066)] HRESULT ErrorDescription([out, retval] BSTR *pRetVal);
+    [propget, id(1067)] HRESULT ErrorCode([out, retval] LONG *pRetVal);
+    [propget, id(1045)] HRESULT AnimationAtStart([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1045)] HRESULT AnimationAtStart([in] VARIANT_BOOL newValue);
+    [propget, id(1022)] HRESULT TransparentAtStart([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1022)] HRESULT TransparentAtStart([in] VARIANT_BOOL newValue);
+    [propget, id(19)] HRESULT Volume([out, retval] LONG *pRetVal);
+    [propput, id(19)] HRESULT Volume([in] LONG newValue);
+    [propget, id(20)] HRESULT Balance([out, retval] LONG *pRetVal);
+    [propput, id(20)] HRESULT Balance([in] LONG newValue);
+    [propget, id(-525)] HRESULT ReadyState([out, retval] enum MPReadyStateConstants *pRetVal);
+    [propget, id(15)] HRESULT SelectionStart([out, retval] DOUBLE *pRetVal);
+    [propput, id(15)] HRESULT SelectionStart([in] DOUBLE newValue);
+    [propget, id(16)] HRESULT SelectionEnd([out, retval] DOUBLE *pRetVal);
+    [propput, id(16)] HRESULT SelectionEnd([in] DOUBLE newValue);
+    [propget, id(22)] HRESULT ShowDisplay([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(22)] HRESULT ShowDisplay([in] VARIANT_BOOL newValue);
+    [propget, id(23)] HRESULT ShowControls([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(23)] HRESULT ShowControls([in] VARIANT_BOOL newValue);
+    [propget, id(24)] HRESULT ShowPositionControls([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(24)] HRESULT ShowPositionControls([in] VARIANT_BOOL newValue);
+    [propget, id(26)] HRESULT ShowTracker([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(26)] HRESULT ShowTracker([in] VARIANT_BOOL newValue);
+    [propget, id(27)] HRESULT EnablePositionControls([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(27)] HRESULT EnablePositionControls([in] VARIANT_BOOL newValue);
+    [propget, id(29)] HRESULT EnableTracker([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(29)] HRESULT EnableTracker([in] VARIANT_BOOL newValue);
+    [propget, id(-514)] HRESULT Enabled([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(-514)] HRESULT Enabled([in] VARIANT_BOOL newValue);
+    [propget, id(36)] HRESULT DisplayForeColor([out, retval] VB_OLE_COLOR *pRetVal);
+    [propput, id(36)] HRESULT DisplayForeColor([in] VB_OLE_COLOR newValue);
+    [propget, id(37)] HRESULT DisplayBackColor([out, retval] VB_OLE_COLOR *pRetVal);
+    [propput, id(37)] HRESULT DisplayBackColor([in] VB_OLE_COLOR newValue);
+    [propget, id(32)] HRESULT DisplayMode([out, retval] enum MPDisplayModeConstants *pRetVal);
+    [propput, id(32)] HRESULT DisplayMode([in] enum MPDisplayModeConstants newValue);
+    [propget, id(1103)] HRESULT VideoBorder3D([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1103)] HRESULT VideoBorder3D([in] VARIANT_BOOL newValue);
+    [propget, id(1101)] HRESULT VideoBorderWidth([out, retval] LONG *pRetVal);
+    [propput, id(1101)] HRESULT VideoBorderWidth([in] LONG newValue);
+    [propget, id(1102)] HRESULT VideoBorderColor([out, retval] VB_OLE_COLOR *pRetVal);
+    [propput, id(1102)] HRESULT VideoBorderColor([in] VB_OLE_COLOR newValue);
+    [propget, id(1088)] HRESULT ShowGotoBar([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1088)] HRESULT ShowGotoBar([in] VARIANT_BOOL newValue);
+    [propget, id(1086)] HRESULT ShowStatusBar([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1086)] HRESULT ShowStatusBar([in] VARIANT_BOOL newValue);
+    [propget, id(1084)] HRESULT ShowCaptioning([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1084)] HRESULT ShowCaptioning([in] VARIANT_BOOL newValue);
+    [propget, id(1107)] HRESULT ShowAudioControls([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1107)] HRESULT ShowAudioControls([in] VARIANT_BOOL newValue);
+    [propget, id(1085)] HRESULT CaptioningID([out, retval] BSTR *pRetVal);
+    [propput, id(1085)] HRESULT CaptioningID([in] BSTR newValue);
+    [propget, id(1089)] HRESULT Mute([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1089)] HRESULT Mute([in] VARIANT_BOOL newValue);
+    [propget, id(1093)] HRESULT CanPreview([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1091)] HRESULT PreviewMode([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1091)] HRESULT PreviewMode([in] VARIANT_BOOL newValue);
+    [propget, id(1094)] HRESULT HasMultipleItems([out, retval] VARIANT_BOOL *pRetVal);
+    [propget, id(1095)] HRESULT Language([out, retval] LONG *pRetVal);
+    [propput, id(1095)] HRESULT Language([in] LONG newValue);
+    [propget, id(1096)] HRESULT AudioStream([out, retval] LONG *pRetVal);
+    [propput, id(1096)] HRESULT AudioStream([in] LONG newValue);
+    [propget, id(1097)] HRESULT SAMIStyle([out, retval] BSTR *pRetVal);
+    [propput, id(1097)] HRESULT SAMIStyle([in] BSTR newValue);
+    [propget, id(1098)] HRESULT SAMILang([out, retval] BSTR *pRetVal);
+    [propput, id(1098)] HRESULT SAMILang([in] BSTR newValue);
+    [propget, id(1099)] HRESULT SAMIFileName([out, retval] BSTR *pRetVal);
+    [propput, id(1099)] HRESULT SAMIFileName([in] BSTR newValue);
+    [propget, id(1100)] HRESULT StreamCount([out, retval] LONG *pRetVal);
+    [propget, id(1106)] HRESULT ClientId([out, retval] BSTR *pRetVal);
+    [propget, id(1113)] HRESULT ConnectionSpeed([out, retval] LONG *pRetVal);
+    [propget, id(-500)] HRESULT AutoSize([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(-500)] HRESULT AutoSize([in] VARIANT_BOOL newValue);
+    [propget, id(1108)] HRESULT EnableFullScreenControls([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1108)] HRESULT EnableFullScreenControls([in] VARIANT_BOOL newValue);
+    [propget, id(1109)] HRESULT ActiveMovie([out, retval] IDispatch * *pRetVal);
+    [propget, id(1110)] HRESULT NSPlay([out, retval] IDispatch * *pRetVal);
+    [propget, id(1112)] HRESULT WindowlessVideo([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1112)] HRESULT WindowlessVideo([in] VARIANT_BOOL newValue);
+    [id(2001)] HRESULT Play();
+    [id(2003)] HRESULT Stop();
+    [id(2002)] HRESULT Pause();
+    [id(2004)] HRESULT GetMarkerTime([in] LONG MarkerNum, [out, retval] DOUBLE *pRetVal);
+    [id(2005)] HRESULT GetMarkerName([in] LONG MarkerNum, [out, retval] BSTR *pRetVal);
+    [id(-552)] HRESULT AboutBox();
+    [id(2007)] HRESULT GetCodecInstalled([in] LONG CodecNum, [out, retval] VARIANT_BOOL *pRetVal);
+    [id(2008)] HRESULT GetCodecDescription([in] LONG CodecNum, [out, retval] BSTR *pRetVal);
+    [id(2009)] HRESULT GetCodecURL([in] LONG CodecNum, [out, retval] BSTR *pRetVal);
+    [id(2011)] HRESULT GetMoreInfoURL([in] enum MPMoreInfoType MoreInfoType, [out, retval] BSTR *pRetVal);
+    [id(2016)] HRESULT GetMediaInfoString([in] enum MPMediaInfoType MediaInfoType, [out, retval] BSTR *pRetVal);
+    [id(2006)] HRESULT Cancel();
+    [id(2010)] HRESULT Open([in] BSTR bstrFileName);
+    [id(53)] HRESULT IsSoundCardEnabled([out, retval] VARIANT_BOOL *pRetVal);
+    [id(2023)] HRESULT Next();
+    [id(2022)] HRESULT Previous();
+    [id(2015)] HRESULT StreamSelect([in] LONG StreamNum);
+    [id(2024)] HRESULT FastForward();
+    [id(2025)] HRESULT FastReverse();
+    [id(2019)] HRESULT GetStreamName([in] LONG StreamNum, [out, retval] BSTR *pRetVal);
+    [id(2020)] HRESULT GetStreamGroup([in] LONG StreamNum, [out, retval] LONG *pRetVal);
+    [id(2021)] HRESULT GetStreamSelected([in] LONG StreamNum, [out, retval] VARIANT_BOOL *pRetVal);
+};
+
+[
+    object,
+    dual,
+    oleautomation,
+    uuid(746EB440-3835-11D2-9774-0000F80855E6),
+    pointer_default(unique)
+]
+interface IMediaPlayerDvd : IDispatch
+{
+    [propget, id(1582)] HRESULT TotalTitleTime([out, retval] BSTR *pRetVal);
+    [propget, id(1571)] HRESULT ButtonsAvailable([out, retval] ULONG *pRetVal);
+    [propget, id(1570)] HRESULT CurrentButton([out, retval] ULONG *pRetVal);
+    [propget, id(1543)] HRESULT AudioStreamsAvailable([out, retval] ULONG *pRetVal);
+    [propget, id(1544)] HRESULT CurrentAudioStream([out, retval] ULONG *pRetVal);
+    [propput, id(1544)] HRESULT CurrentAudioStream([in] ULONG newValue);
+    [propget, id(1545)] HRESULT CurrentSubpictureStream([out, retval] ULONG *pRetVal);
+    [propput, id(1545)] HRESULT CurrentSubpictureStream([in] ULONG newValue);
+    [propget, id(1546)] HRESULT SubpictureStreamsAvailable([out, retval] ULONG *pRetVal);
+    [propget, id(1547)] HRESULT SubpictureOn([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1547)] HRESULT SubpictureOn([in] VARIANT_BOOL newValue);
+    [propget, id(1549)] HRESULT AnglesAvailable([out, retval] ULONG *pRetVal);
+    [propget, id(1548)] HRESULT CurrentAngle([out, retval] ULONG *pRetVal);
+    [propput, id(1548)] HRESULT CurrentAngle([in] ULONG newValue);
+    [propget, id(1567)] HRESULT CurrentTitle([out, retval] ULONG *pRetVal);
+    [propget, id(1568)] HRESULT CurrentChapter([out, retval] ULONG *pRetVal);
+    [propget, id(1569)] HRESULT CurrentTime([out, retval] BSTR *pRetVal);
+    [propget, id(1538)] HRESULT Root([out, retval] BSTR *pRetVal);
+    [propput, id(1538)] HRESULT Root([in] BSTR newValue);
+    [propget, id(1573)] HRESULT FramesPerSecond([out, retval] ULONG *pRetVal);
+    [propget, id(1574)] HRESULT CurrentDomain([out, retval] ULONG *pRetVal);
+    [propget, id(1575)] HRESULT TitlesAvailable([out, retval] ULONG *pRetVal);
+    [propget, id(1576)] HRESULT VolumesAvailable([out, retval] ULONG *pRetVal);
+    [propget, id(1577)] HRESULT CurrentVolume([out, retval] ULONG *pRetVal);
+    [propget, id(1578)] HRESULT CurrentDiscSide([out, retval] ULONG *pRetVal);
+    [propget, id(1581)] HRESULT CCActive([out, retval] VARIANT_BOOL *pRetVal);
+    [propput, id(1581)] HRESULT CCActive([in] VARIANT_BOOL newValue);
+    [propget, id(1580)] HRESULT CurrentCCService([out, retval] ULONG *pRetVal);
+    [propput, id(1580)] HRESULT CurrentCCService([in] ULONG newValue);
+    [propget, id(1584)] HRESULT UniqueID([out, retval] BSTR *pRetVal);
+    [propget, id(1585)] HRESULT ColorKey([out, retval] ULONG *pRetVal);
+    [propput, id(1585)] HRESULT ColorKey([in] ULONG newValue);
+    [id(1526)] HRESULT ButtonSelectAndActivate([in] ULONG uiButton);
+    [id(1521)] HRESULT UpperButtonSelect();
+    [id(1522)] HRESULT LowerButtonSelect();
+    [id(1523)] HRESULT LeftButtonSelect();
+    [id(1524)] HRESULT RightButtonSelect();
+    [id(1525)] HRESULT ButtonActivate();
+    [id(1517)] HRESULT ForwardScan([in] DOUBLE dwSpeed);
+    [id(1518)] HRESULT BackwardScan([in] DOUBLE dwSpeed);
+    [id(1514)] HRESULT PrevPGSearch();
+    [id(1515)] HRESULT TopPGSearch();
+    [id(1516)] HRESULT NextPGSearch();
+    [id(1507)] HRESULT TitlePlay([in] ULONG uiTitle);
+    [id(1508)] HRESULT ChapterPlay([in] ULONG uiTitle, [in] ULONG uiChapter);
+    [id(1513)] HRESULT ChapterSearch([in] ULONG Chapter);
+    [id(1519)] HRESULT MenuCall([in] enum DVDMenuIDConstants MenuID);
+    [id(1520)] HRESULT ResumeFromMenu();
+    [id(1509)] HRESULT TimePlay([in] ULONG uiTitle, [in] BSTR bstrTime);
+    [id(1512)] HRESULT TimeSearch([in] BSTR bstrTime);
+    [id(1541)] HRESULT ChapterPlayAutoStop([in] ULONG ulTitle, [in] ULONG ulChapter, [in] ULONG ulChaptersToPlay);
+    [id(1527)] HRESULT StillOff();
+    [id(1511)] HRESULT GoUp();
+    [id(1550)] HRESULT GetNumberOfChapters([in] ULONG ulTitle, [out, retval] ULONG *pRetVal);
+    [id(1551)] HRESULT GetAudioLanguage([in] ULONG ulStream, [out, retval] BSTR *pRetVal);
+    [id(1555)] HRESULT GetSubpictureLanguage([in] ULONG ulStream, [out, retval] BSTR *pRetVal);
+    [id(1560)] HRESULT GetAllGPRMs([out, retval] VARIANT *pRetVal);
+    [id(1559)] HRESULT GetAllSPRMs([out, retval] VARIANT *pRetVal);
+    [id(1579)] HRESULT UOPValid([in] ULONG ulUOP, [out, retval] VARIANT_BOOL *pRetVal);
+};
+
+[
+    object,
+    dual,
+    oleautomation,
+    uuid(20D4F5E0-5475-11D2-9774-0000F80855E6),
+    pointer_default(unique)
+]
+interface IMediaPlayer2 : IMediaPlayer
+{
+    [propget, id(1500)] HRESULT DVD([out, retval] IMediaPlayerDvd * *pRetVal);
+    [propget, id(2030)] HRESULT EntryCount([out, retval] LONG *pRetVal);
+    [id(2028)] HRESULT GetMediaParameter([in] LONG EntryNum, [in] BSTR bstrParameterName, [out, retval] BSTR *pRetVal);
+    [id(2029)] HRESULT GetMediaParameterName([in] LONG EntryNum, [in] LONG Index, [out, retval] BSTR *pRetVal);
+    [id(2031)] HRESULT GetCurrentEntry([out, retval] LONG *pRetVal);
+    [id(2032)] HRESULT SetCurrentEntry([in] LONG EntryNumber);
+    [id(2033)] HRESULT ShowDialog([in] enum MPShowDialogConstants mpDialogIndex);
+};
+
+[
+    uuid(2D3A4C40-E711-11D0-94AB-0080C74C7E95),
+    hidden
+]
+dispinterface _MediaPlayerEvents
+{
+    properties:
+    methods:
+    [id(1505)] void DVDNotify([in] LONG EventCode, [in] LONG EventParam1, [in] LONG EventParam2);
+    [id(3002)] void EndOfStream([in] LONG Result);
+    [id(-602)] void KeyDown([in] SHORT KeyCode, [in] SHORT ShiftState);
+    [id(-604)] void KeyUp([in] SHORT KeyCode, [in] SHORT ShiftState);
+    [id(-603)] void KeyPress([in] SHORT CharacterCode);
+    [id(-606)] void MouseMove([in] SHORT Button, [in] SHORT ShiftState, [in] OLE_XPOS_PIXELS x, [in] OLE_YPOS_PIXELS y);
+    [id(-605)] void MouseDown([in] SHORT Button, [in] SHORT ShiftState, [in] OLE_XPOS_PIXELS x, [in] OLE_YPOS_PIXELS y);
+    [id(-607)] void MouseUp([in] SHORT Button, [in] SHORT ShiftState, [in] OLE_XPOS_PIXELS x, [in] OLE_YPOS_PIXELS y);
+    [id(-600)] void Click([in] SHORT Button, [in] SHORT ShiftState, [in] OLE_XPOS_PIXELS x, [in] OLE_YPOS_PIXELS y);
+    [id(-601)] void DblClick([in] SHORT Button, [in] SHORT ShiftState, [in] OLE_XPOS_PIXELS x, [in] OLE_YPOS_PIXELS y);
+    [id(3011)] void OpenStateChange([in] LONG OldState, [in] LONG NewState);
+    [id(3012)] void PlayStateChange([in] LONG OldState, [in] LONG NewState);
+    [id(3001)] void ScriptCommand([in] BSTR scType, [in] BSTR Param);
+    [id(3003)] void Buffering([in] VARIANT_BOOL Start);
+    [id(3010)] void Error();
+    [id(3006)] void MarkerHit([in] LONG MarkerNum);
+    [id(3009)] void Warning([in] LONG WarningType, [in] LONG Param, [in] BSTR Description);
+    [id(3008)] void NewStream();
+    [id(3004)] void Disconnect([in] LONG Result);
+    [id(2)] void PositionChange([in] DOUBLE oldPosition, [in] DOUBLE newPosition);
+    [id(51)] void DisplayModeChange();
+    [id(-609)] void ReadyStateChange([in] enum ReadyStateConstants ReadyState);
+};
+
+[
+    uuid(22D6F312-B0F6-11D0-94AB-0080C74C7E95),
+    control,
+    helpstring("Gold Premium Media Player compatibility control")
+]
+coclass MediaPlayer
+{
+    [default] interface IMediaPlayer2;
+    [default, source] dispinterface _MediaPlayerEvents;
+};
+};

@@ -1,0 +1,515 @@
+#include "stdafx.h"
+#include "GoldPremiumMediaControl.h"
+#include <cmath>
+#include <limits>
+
+namespace
+{
+    constexpr LONG kGraphNotifyMessage = WM_APP + 0x3D1;
+    constexpr REFERENCE_TIME kReferenceTimePerSecond = 10'000'000;
+    constexpr LONG kOpenStateClosed = 0;
+    constexpr LONG kOpenStateOpen = 6;
+}
+
+CMediaPlayer::CMediaPlayer() noexcept
+    : m_playState(mpStopped),
+      m_openState(0),
+      m_volume(0),
+      m_balance(0),
+      m_sendOpenStateChangeEvents(VARIANT_TRUE),
+      m_sendPlayStateChangeEvents(VARIANT_TRUE)
+{
+    m_notifyWindow.owner = this;
+}
+
+CMediaPlayer::~CMediaPlayer()
+{
+    FinalRelease();
+}
+
+HRESULT CMediaPlayer::FinalConstruct() noexcept
+{
+    if (m_notifyWindow.Create(HWND_MESSAGE) == nullptr)
+    {
+        const DWORD error = GetLastError();
+        return HRESULT_FROM_WIN32(error == ERROR_SUCCESS ? ERROR_NOT_ENOUGH_MEMORY : error);
+    }
+
+    return S_OK;
+}
+
+void CMediaPlayer::FinalRelease() noexcept
+{
+    CloseGraph();
+    m_notifyWindow.owner = nullptr;
+    if (m_notifyWindow.IsWindow())
+    {
+        m_notifyWindow.DestroyWindow();
+    }
+}
+
+HRESULT CMediaPlayer::OnDraw(ATL_DRAWINFO& drawInfo)
+{
+    HBRUSH brush = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+    const RECT* bounds = reinterpret_cast<const RECT*>(drawInfo.prcBounds);
+    return brush != nullptr && bounds != nullptr && FillRect(drawInfo.hdcDraw, bounds, brush)
+        ? S_OK
+        : HRESULT_FROM_WIN32(GetLastError());
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_CurrentPosition(DOUBLE* value) noexcept
+{
+    return GetPosition(value, false);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::put_CurrentPosition(DOUBLE value) noexcept
+{
+    if (!std::isfinite(value) || value < 0.0 ||
+        value > static_cast<DOUBLE>(std::numeric_limits<REFERENCE_TIME>::max()) /
+            static_cast<DOUBLE>(kReferenceTimePerSecond))
+    {
+        return E_INVALIDARG;
+    }
+    if (!m_mediaSeeking)
+    {
+        return VFW_E_NOT_CONNECTED;
+    }
+
+    LONGLONG position = static_cast<LONGLONG>(value * kReferenceTimePerSecond);
+    return m_mediaSeeking->SetPositions(
+        &position,
+        AM_SEEKING_AbsolutePositioning,
+        nullptr,
+        AM_SEEKING_NoPositioning);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_Duration(DOUBLE* value) noexcept
+{
+    return GetPosition(value, true);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_FileName(BSTR* value) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = nullptr;
+    return m_fileName.CopyTo(value);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::put_FileName(BSTR value) noexcept
+{
+    if (value == nullptr || value[0] == L'\0')
+    {
+        CloseGraph();
+        m_fileName.Empty();
+        return S_OK;
+    }
+    return OpenGraph(value);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_OpenState(LONG* value) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = m_openState;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_PlayState(MPPlayStateConstants* value) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = m_playState;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_SendOpenStateChangeEvents(VARIANT_BOOL* value) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = m_sendOpenStateChangeEvents;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::put_SendOpenStateChangeEvents(VARIANT_BOOL value) noexcept
+{
+    m_sendOpenStateChangeEvents = value == VARIANT_FALSE ? VARIANT_FALSE : VARIANT_TRUE;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_SendPlayStateChangeEvents(VARIANT_BOOL* value) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = m_sendPlayStateChangeEvents;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::put_SendPlayStateChangeEvents(VARIANT_BOOL value) noexcept
+{
+    m_sendPlayStateChangeEvents = value == VARIANT_FALSE ? VARIANT_FALSE : VARIANT_TRUE;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_Volume(LONG* value) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = m_volume;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::put_Volume(LONG value) noexcept
+{
+    if (value < -10000 || value > 0)
+    {
+        return E_INVALIDARG;
+    }
+    if (m_basicAudio)
+    {
+        const HRESULT hr = m_basicAudio->put_Volume(value);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+    }
+    m_volume = value;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::get_Balance(LONG* value) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = m_balance;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::put_Balance(LONG value) noexcept
+{
+    if (value < -10000 || value > 10000)
+    {
+        return E_INVALIDARG;
+    }
+    if (m_basicAudio)
+    {
+        const HRESULT hr = m_basicAudio->put_Balance(value);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+    }
+    m_balance = value;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::Open(BSTR fileName) noexcept
+{
+    return put_FileName(fileName);
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::Play() noexcept
+{
+    if (!m_mediaControl)
+    {
+        return VFW_E_NOT_CONNECTED;
+    }
+    const HRESULT hr = m_mediaControl->Run();
+    if (SUCCEEDED(hr))
+    {
+        SetPlayState(mpPlaying);
+    }
+    return hr;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::Pause() noexcept
+{
+    if (!m_mediaControl)
+    {
+        return VFW_E_NOT_CONNECTED;
+    }
+    const HRESULT hr = m_mediaControl->Pause();
+    if (SUCCEEDED(hr))
+    {
+        SetPlayState(mpPaused);
+    }
+    return hr;
+}
+
+HRESULT STDMETHODCALLTYPE CMediaPlayer::Stop() noexcept
+{
+    if (!m_mediaControl)
+    {
+        return S_OK;
+    }
+    const HRESULT hr = m_mediaControl->Stop();
+    if (SUCCEEDED(hr))
+    {
+        SetPlayState(mpStopped);
+    }
+    return hr;
+}
+
+HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
+{
+    if (fileName == nullptr || fileName[0] == L'\0')
+    {
+        return E_INVALIDARG;
+    }
+
+    CloseGraph();
+
+    ATL::CComPtr<IGraphBuilder> graph;
+    HRESULT hr = CoCreateInstance(
+        CLSID_FilterGraph,
+        nullptr,
+        CLSCTX_INPROC_SERVER,
+        IID_PPV_ARGS(&graph));
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    hr = graph->RenderFile(fileName, nullptr);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    ATL::CComPtr<IMediaControl> mediaControl;
+    ATL::CComPtr<IMediaSeeking> mediaSeeking;
+    ATL::CComPtr<IMediaEventEx> mediaEvent;
+    ATL::CComPtr<IBasicAudio> basicAudio;
+    if (FAILED(hr = graph.QueryInterface(&mediaControl)) ||
+        FAILED(hr = graph.QueryInterface(&mediaSeeking)) ||
+        FAILED(hr = graph.QueryInterface(&mediaEvent)))
+    {
+        return hr;
+    }
+    graph.QueryInterface(&basicAudio);
+
+    hr = mediaEvent->SetNotifyWindow(
+        reinterpret_cast<OAHWND>(m_notifyWindow.m_hWnd),
+        kGraphNotifyMessage,
+        reinterpret_cast<LONG_PTR>(this));
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    m_graph = graph;
+    m_mediaControl = mediaControl;
+    m_mediaSeeking = mediaSeeking;
+    m_mediaEvent = mediaEvent;
+    m_basicAudio = basicAudio;
+    m_fileName = fileName;
+    if (m_basicAudio)
+    {
+        if (FAILED(hr = m_basicAudio->put_Volume(m_volume)) ||
+            FAILED(hr = m_basicAudio->put_Balance(m_balance)))
+        {
+            CloseGraph();
+            return hr;
+        }
+    }
+
+    SetOpenState(kOpenStateOpen);
+    return S_OK;
+}
+
+void CMediaPlayer::CloseGraph() noexcept
+{
+    if (m_mediaEvent)
+    {
+        m_mediaEvent->SetNotifyWindow(0, 0, 0);
+    }
+    if (m_mediaControl)
+    {
+        m_mediaControl->Stop();
+    }
+    m_mediaEvent.Release();
+    m_mediaControl.Release();
+    m_mediaSeeking.Release();
+    m_basicAudio.Release();
+    m_graph.Release();
+    SetPlayState(mpStopped);
+    SetOpenState(kOpenStateClosed);
+}
+
+void CMediaPlayer::SetPlayState(MPPlayStateConstants state) noexcept
+{
+    if (state == m_playState)
+    {
+        return;
+    }
+    const LONG oldState = m_playState;
+    m_playState = state;
+    if (m_sendPlayStateChangeEvents != VARIANT_FALSE)
+    {
+        FirePlayStateChange(oldState, state);
+    }
+}
+
+void CMediaPlayer::SetOpenState(LONG state) noexcept
+{
+    if (state == m_openState)
+    {
+        return;
+    }
+    const LONG oldState = m_openState;
+    m_openState = state;
+    if (m_sendOpenStateChangeEvents != VARIANT_FALSE)
+    {
+        FireOpenStateChange(oldState, state);
+    }
+}
+
+void CMediaPlayer::FirePlayStateChange(LONG oldState, LONG newState) noexcept
+{
+    ATL::CComVariant args[2];
+    args[0] = newState;
+    args[1] = oldState;
+    DISPPARAMS parameters{args, nullptr, 2, 0};
+    for (int index = 0; index < m_vec.GetSize(); ++index)
+    {
+        ATL::CComPtr<IUnknown> sinkUnknown = m_vec.GetAt(index);
+        ATL::CComPtr<IDispatch> sink;
+        if (sinkUnknown && SUCCEEDED(sinkUnknown->QueryInterface(IID_PPV_ARGS(&sink))))
+        {
+            sink->Invoke(
+                3012,
+                IID_NULL,
+                LOCALE_USER_DEFAULT,
+                DISPATCH_METHOD,
+                &parameters,
+                nullptr,
+                nullptr,
+                nullptr);
+        }
+    }
+}
+
+void CMediaPlayer::FireEndOfStream(LONG result) noexcept
+{
+    ATL::CComVariant argument(result);
+    DISPPARAMS parameters{&argument, nullptr, 1, 0};
+    for (int index = 0; index < m_vec.GetSize(); ++index)
+    {
+        ATL::CComPtr<IUnknown> sinkUnknown = m_vec.GetAt(index);
+        ATL::CComPtr<IDispatch> sink;
+        if (sinkUnknown && SUCCEEDED(sinkUnknown->QueryInterface(IID_PPV_ARGS(&sink))))
+        {
+            sink->Invoke(
+                3002,
+                IID_NULL,
+                LOCALE_USER_DEFAULT,
+                DISPATCH_METHOD,
+                &parameters,
+                nullptr,
+                nullptr,
+                nullptr);
+        }
+    }
+}
+
+HRESULT CMediaPlayer::FireOpenStateChange(LONG oldState, LONG newState) noexcept
+{
+    ATL::CComVariant args[2];
+    args[0] = newState;
+    args[1] = oldState;
+    DISPPARAMS parameters{args, nullptr, 2, 0};
+    HRESULT result = S_OK;
+    for (int index = 0; index < m_vec.GetSize(); ++index)
+    {
+        ATL::CComPtr<IUnknown> sinkUnknown = m_vec.GetAt(index);
+        ATL::CComPtr<IDispatch> sink;
+        if (sinkUnknown && SUCCEEDED(sinkUnknown->QueryInterface(IID_PPV_ARGS(&sink))))
+        {
+            const HRESULT hr = sink->Invoke(
+                3011,
+                IID_NULL,
+                LOCALE_USER_DEFAULT,
+                DISPATCH_METHOD,
+                &parameters,
+                nullptr,
+                nullptr,
+                nullptr);
+            if (FAILED(hr) && SUCCEEDED(result))
+            {
+                result = hr;
+            }
+        }
+    }
+    return result;
+}
+
+HRESULT CMediaPlayer::GetPosition(DOUBLE* value, bool duration) noexcept
+{
+    if (value == nullptr)
+    {
+        return E_POINTER;
+    }
+    *value = 0.0;
+    if (!m_mediaSeeking)
+    {
+        return S_OK;
+    }
+
+    LONGLONG position = 0;
+    const HRESULT hr = duration
+        ? m_mediaSeeking->GetDuration(&position)
+        : m_mediaSeeking->GetCurrentPosition(&position);
+    if (SUCCEEDED(hr))
+    {
+        *value = static_cast<DOUBLE>(position) / kReferenceTimePerSecond;
+    }
+    return hr;
+}
+
+void CMediaPlayer::HandleGraphNotify() noexcept
+{
+    if (!m_mediaEvent)
+    {
+        return;
+    }
+
+    long eventCode = 0;
+    LONG_PTR parameter1 = 0;
+    LONG_PTR parameter2 = 0;
+    while (m_mediaEvent->GetEvent(&eventCode, &parameter1, &parameter2, 0) == S_OK)
+    {
+        m_mediaEvent->FreeEventParams(eventCode, parameter1, parameter2);
+        if (eventCode == EC_COMPLETE)
+        {
+            SetPlayState(mpStopped);
+            FireEndOfStream(static_cast<LONG>(parameter1));
+        }
+        else if (eventCode == EC_ERRORABORT)
+        {
+            SetPlayState(mpStopped);
+        }
+    }
+}
+
+LRESULT CMediaPlayerNotifyWindow::OnGraphNotify(UINT, WPARAM, LPARAM, BOOL&)
+{
+    if (owner != nullptr)
+    {
+        owner->HandleGraphNotify();
+    }
+    return 0;
+}
