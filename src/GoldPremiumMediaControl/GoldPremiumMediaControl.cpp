@@ -77,32 +77,11 @@ namespace
             return hr;
         }
 
-        ATL::CComPtr<IPin> rendererInput;
-        ATL::CComPtr<IEnumPins> rendererPins;
-        hr = nullRenderer->EnumPins(&rendererPins);
+        ATL::CComPtr<IFilterGraph2> graph2;
+        hr = graph.QueryInterface(&graph2);
         if (FAILED(hr))
         {
             return hr;
-        }
-        ATL::CComPtr<IPin> rendererPin;
-        while (rendererPins->Next(1, &rendererPin, nullptr) == S_OK)
-        {
-            PIN_DIRECTION direction = PINDIR_OUTPUT;
-            hr = rendererPin->QueryDirection(&direction);
-            if (FAILED(hr))
-            {
-                return hr;
-            }
-            if (direction == PINDIR_INPUT)
-            {
-                rendererInput = rendererPin;
-                break;
-            }
-            rendererPin.Release();
-        }
-        if (!rendererInput)
-        {
-            return VFW_E_NOT_FOUND;
         }
 
         ATL::CComPtr<IEnumPins> pins;
@@ -124,37 +103,10 @@ namespace
             }
             if (direction == PINDIR_OUTPUT)
             {
-                ATL::CComPtr<IEnumMediaTypes> mediaTypes;
-                hr = pin->EnumMediaTypes(&mediaTypes);
-                if (FAILED(hr))
-                {
-                    return hr;
-                }
-
-                bool isAudio = false;
-                AM_MEDIA_TYPE* mediaType = nullptr;
-                while (mediaTypes->Next(1, &mediaType, nullptr) == S_OK)
-                {
-                    if (mediaType->majortype == MEDIATYPE_Audio)
-                    {
-                        isAudio = true;
-                    }
-                    if (mediaType->pUnk != nullptr)
-                    {
-                        mediaType->pUnk->Release();
-                    }
-                    CoTaskMemFree(mediaType->pbFormat);
-                    CoTaskMemFree(mediaType);
-                    mediaType = nullptr;
-                    if (isAudio)
-                    {
-                        break;
-                    }
-                }
-
-                hr = isAudio
-                    ? graph->ConnectDirect(pin, rendererInput, nullptr)
-                    : graph->Render(pin);
+                hr = graph2->RenderEx(
+                    pin,
+                    AM_RENDEREX_RENDERTOEXISTINGRENDERERS,
+                    nullptr);
                 if (FAILED(hr))
                 {
                     return hr;
