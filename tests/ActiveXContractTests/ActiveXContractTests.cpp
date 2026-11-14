@@ -55,8 +55,23 @@ namespace
             parameters.rgdispidNamedArgs = &namedId;
             parameters.cNamedArgs = 1;
         }
-        return dispatch->Invoke(
-            id, IID_NULL, LOCALE_USER_DEFAULT, flags, &parameters, result, nullptr, nullptr);
+        EXCEPINFO exceptionInfo{};
+        const HRESULT hr = dispatch->Invoke(
+            id, IID_NULL, LOCALE_USER_DEFAULT, flags, &parameters, result, &exceptionInfo, nullptr);
+        if (exceptionInfo.pfnDeferredFillIn != nullptr)
+        {
+            exceptionInfo.pfnDeferredFillIn(&exceptionInfo);
+        }
+        if (FAILED(hr) && (exceptionInfo.scode != S_OK || exceptionInfo.bstrDescription != nullptr))
+        {
+            std::fwprintf(stderr, L"IDispatch exception: scode=0x%08lx, description=%ls\n",
+                static_cast<unsigned long>(exceptionInfo.scode),
+                exceptionInfo.bstrDescription == nullptr ? L"" : exceptionInfo.bstrDescription);
+        }
+        SysFreeString(exceptionInfo.bstrSource);
+        SysFreeString(exceptionInfo.bstrDescription);
+        SysFreeString(exceptionInfo.bstrHelpFile);
+        return hr;
     }
 
     bool PutLong(IDispatch* dispatch, DISPID id, LONG value)
