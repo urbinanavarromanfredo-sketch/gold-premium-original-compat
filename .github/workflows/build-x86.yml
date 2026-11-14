@@ -69,15 +69,19 @@ jobs:
             if (-not (Test-Path $ffmpegPath)) { throw 'FFmpeg no apareció en el PATH de Chocolatey.' }
           }
           $fixture = Join-Path $env:GITHUB_WORKSPACE 'artifacts\test-results\compatibility-tone.mp3'
+          $waveFixture = Join-Path $env:GITHUB_WORKSPACE 'artifacts\test-results\compatibility-tone.wav'
           & $ffmpegPath -hide_banner -loglevel error -f lavfi -i 'sine=frequency=440:sample_rate=44100:duration=1.5' -codec:a libmp3lame -b:a 64k -y $fixture
           if ($LASTEXITCODE -ne 0 -or -not (Test-Path $fixture)) { throw 'No se pudo generar el MP3 sintético.' }
+          & $ffmpegPath -hide_banner -loglevel error -f lavfi -i 'sine=frequency=440:sample_rate=44100:duration=1.5' -codec:a pcm_s16le -y $waveFixture
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $waveFixture)) { throw 'No se pudo generar el WAV PCM sintético.' }
 
       - name: Run private-activation COM and playback tests
         shell: pwsh
         run: |
           $testExe = Join-Path $env:GITHUB_WORKSPACE 'artifacts\Win32\Release\ActiveXContractTests.exe'
           $fixture = Join-Path $env:GITHUB_WORKSPACE 'artifacts\test-results\compatibility-tone.mp3'
-          & $testExe $fixture 2>&1 | Tee-Object -FilePath artifacts\test-results\ActiveXContractTests.txt
+          $waveFixture = Join-Path $env:GITHUB_WORKSPACE 'artifacts\test-results\compatibility-tone.wav'
+          & $testExe $fixture $waveFixture 2>&1 | Tee-Object -FilePath artifacts\test-results\ActiveXContractTests.txt
           $testExitCode = $LASTEXITCODE
           if ($testExitCode -ne 0) { throw "ActiveX COM/playback tests failed with exit code $testExitCode." }
 

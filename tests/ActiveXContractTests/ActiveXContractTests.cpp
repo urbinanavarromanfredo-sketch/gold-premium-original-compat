@@ -46,8 +46,9 @@ namespace
     }
 
     HRESULT Invoke(IDispatch* dispatch, DISPID id, WORD flags, VARIANT* arguments,
-        UINT argumentCount, VARIANT* result = nullptr)
+        UINT argumentCount, VARIANT* result = nullptr, HRESULT* exceptionCode = nullptr)
     {
+        if (exceptionCode != nullptr) *exceptionCode = S_OK;
         DISPPARAMS parameters{arguments, nullptr, argumentCount, 0};
         DISPID namedId = DISPID_PROPERTYPUT;
         if ((flags & DISPATCH_PROPERTYPUT) != 0)
@@ -67,6 +68,7 @@ namespace
             std::fwprintf(stderr, L"IDispatch exception: scode=0x%08lx, description=%ls\n",
                 static_cast<unsigned long>(exceptionInfo.scode),
                 exceptionInfo.bstrDescription == nullptr ? L"" : exceptionInfo.bstrDescription);
+            if (exceptionCode != nullptr) *exceptionCode = exceptionInfo.scode;
         }
         SysFreeString(exceptionInfo.bstrSource);
         SysFreeString(exceptionInfo.bstrDescription);
@@ -100,10 +102,13 @@ namespace
         return true;
     }
 
-    bool PutString(IDispatch* dispatch, DISPID id, const std::wstring& value)
+    bool PutString(IDispatch* dispatch, DISPID id, const std::wstring& value,
+        HRESULT* exceptionCode = nullptr)
     {
         ATL::CComVariant argument(value.c_str());
-        return CheckHr(Invoke(dispatch, id, DISPATCH_PROPERTYPUT, &argument, 1), "string property put");
+        return CheckHr(
+            Invoke(dispatch, id, DISPATCH_PROPERTYPUT, &argument, 1, nullptr, exceptionCode),
+            "string property put");
     }
 
     bool GetString(IDispatch* dispatch, DISPID id, std::wstring* value)
@@ -306,7 +311,7 @@ namespace
         return condition();
     }
 
-    bool RunTests(const std::wstring& mp3Path)
+    bool RunTests(const std::wstring& mp3Path, const std::wstring& wavePath)
     {
         if (!VerifyEmbeddedTypeLibrary()) return false;
 
@@ -382,9 +387,23 @@ namespace
             return false;
         }
 
+        HRESULT mp3OpenException = S_OK;
+        const bool mp3Opened = PutString(players[0], kFileName, mp3Path, &mp3OpenException);
+        if (!mp3Opened && mp3OpenException != E_NOTIMPL)
+        {
+            return false;
+        }
+        if (!mp3Opened)
+        {
+            std::fprintf(stderr,
+                "MP3 open unavailable in this Windows runner (DirectShow returned E_NOTIMPL); "
+                "continuing functional playback tests with PCM WAV.\n");
+        }
+        const std::wstring& playbackPath = mp3Opened ? mp3Path : wavePath;
+
         if (!PutLong(players[0], kBalance, 1500) ||
             !PutBool(players[0], kSendPlayStateChangeEvents, VARIANT_FALSE) ||
-            !PutString(players[0], kFileName, mp3Path))
+            !PutString(players[0], kFileName, playbackPath))
         {
             return false;
         }
@@ -410,7 +429,7 @@ namespace
         LONG restoredBalance = 0;
         LONG restoredVolume = 0;
         LONG restoredEvents = VARIANT_TRUE;
-        if (!GetString(players[0], kFileName, &restoredFile) || restoredFile != mp3Path ||
+        if (!GetString(players[0], kFileName, &restoredFile) || restoredFile != playbackPath ||
             !GetLong(players[0], kBalance, &restoredBalance) || restoredBalance != 1500 ||
             !GetLong(players[0], kVolume, &restoredVolume) || restoredVolume != -1000 ||
             !GetLong(players[0], kSendPlayStateChangeEvents, &restoredEvents) ||
@@ -445,14 +464,14 @@ namespace
         }
 
         sinks[0]->player = players[0];
-        sinks[0]->nextFile = mp3Path;
+        sinks[0]->nextFile = playbackPath;
         sinks[0]->advanceOnFirstEnd = true;
         for (size_t index = 0; index < 3; ++index)
         {
             if (!PutBool(players[index], kSendPlayStateChangeEvents, VARIANT_TRUE) ||
                 (index == 1
-                    ? !CallWithString(players[index], kOpen, mp3Path)
-                    : !PutString(players[index], kFileName, mp3Path)))
+                    ? !CallWithString(players[index], kOpen, playbackPath)
+                    : !PutString(players[index], kFileName, playbackPath)))
             {
                 return false;
             }
@@ -461,7 +480,7 @@ namespace
         DOUBLE duration = 0.0;
         if (!GetDouble(players[0], kDuration, &duration) || duration <= 0.0)
         {
-            std::fprintf(stderr, "The DirectShow graph did not report a positive MP3 duration.\n");
+            std::fprintf(stderr, "The DirectShow graph did not report a positive media duration.\n");
             return false;
         }
 
@@ -569,7 +588,9 @@ namespace
 
         if (passed)
         {
-            std::puts("COM creation, OLE interfaces, three independent instances, property persistence, MP3 playback, pause/stop, PlayStateChange, EndOfStream, and event-driven next-track playback passed.");
+            std::puts(mp3Opened
+                ? "COM/OLE, persistence, three instances, MP3 playback, pause/stop, state/events, and next-track playback passed."
+                : "COM/OLE, persistence, three instances, PCM WAV playback, pause/stop, state/events, and next-track playback passed; MP3 open was unavailable.");
         }
         return passed;
     }
@@ -577,9 +598,9 @@ namespace
 
 int wmain(int argc, wchar_t** argv)
 {
-    if (argc != 2)
+    if (argc != 3)
     {
-        std::fwprintf(stderr, L"Usage: ActiveXContractTests.exe <generated-test.mp3>\n");
+        std::fwprintf(stderr, L"Usage: ActiveXContractTests.exe <generated-test.mp3> <generated-test.wav>\n");
         return 2;
     }
 
@@ -620,7 +641,7 @@ int wmain(int argc, wchar_t** argv)
     }
     else
     {
-        passed = RunTests(argv[1]);
+        passed = RunTests(argv[1], argv[2]);
         CoUninitialize();
     }
 

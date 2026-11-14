@@ -37,7 +37,9 @@ los imports históricos documentados de MSDXM.OCX 1.0. Es código en desarrollo,
 - El host de pruebas cubre interfaces COM, estado, propiedades, persistencia,
   reproducción y eventos; no aloja el control en VB6 ni ejecuta Gold.
 - La prueba en Windows Server usa el modo silencioso solo cuando no hay
-  hardware de audio. Reproduce el MP3 y verifica temporización/eventos, pero no
+  hardware de audio. Si el decodificador DirectShow del runner devuelve
+  `E_NOTIMPL` al abrir MP3, el test lo registra como no disponible y ejecuta
+  reproducción/eventos con WAV PCM; ese resultado no cuenta como prueba MP3 ni
   prueba sonido audible.
 - El usuario confirmó que existe el archivo diagnóstico V12, pero no está
   materializado en los archivos accesibles de esta sesión. El diagnóstico
