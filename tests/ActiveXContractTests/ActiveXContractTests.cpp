@@ -4,6 +4,7 @@
 #include <atlbase.h>
 #include <atlcom.h>
 #include <cstdio>
+#include <cwchar>
 #include <functional>
 #include <new>
 #include <string>
@@ -233,6 +234,42 @@ namespace
         return true;
     }
 
+    bool VerifyEmbeddedTypeLibrary()
+    {
+        WCHAR modulePath[MAX_PATH]{};
+        const DWORD pathLength = GetModuleFileNameW(nullptr, modulePath, ARRAYSIZE(modulePath));
+        if (pathLength == 0 || pathLength >= ARRAYSIZE(modulePath))
+        {
+            std::fprintf(stderr, "Could not determine the test host path.\n");
+            return false;
+        }
+
+        WCHAR* fileName = std::wcsrchr(modulePath, L'\\');
+        if (fileName == nullptr)
+        {
+            std::fprintf(stderr, "The test host path has no directory separator.\n");
+            return false;
+        }
+        wcscpy_s(fileName + 1, ARRAYSIZE(modulePath) - (fileName + 1 - modulePath),
+            L"GoldPremium_Compat_ActiveX_x86.dll");
+
+        ATL::CComPtr<ITypeLib> typeLibrary;
+        if (!CheckHr(LoadTypeLibEx(modulePath, REGKIND_NONE, &typeLibrary),
+                "LoadTypeLibEx embedded control library"))
+        {
+            return false;
+        }
+        ATL::CComPtr<ITypeInfo> typeInfo;
+        if (!CheckHr(typeLibrary->GetTypeInfoOfGuid(CLSID_MediaPlayer, &typeInfo),
+                "Get embedded control class type information") ||
+            !CheckHr(typeLibrary->GetTypeInfoOfGuid(IID_IMediaPlayer2, &typeInfo),
+                "Get embedded IMediaPlayer2 type information"))
+        {
+            return false;
+        }
+        return true;
+    }
+
     bool PumpUntil(const std::function<bool()>& condition, DWORD timeoutMs)
     {
         const ULONGLONG deadline = GetTickCount64() + timeoutMs;
@@ -251,6 +288,8 @@ namespace
 
     bool RunTests(const std::wstring& mp3Path)
     {
+        if (!VerifyEmbeddedTypeLibrary()) return false;
+
         ATL::CComPtr<IDispatch> players[3];
         for (auto& player : players)
         {
