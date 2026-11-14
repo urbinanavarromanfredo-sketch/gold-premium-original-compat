@@ -2,7 +2,6 @@
 #include "GoldPremiumMediaControl.h"
 #include <cmath>
 #include <limits>
-#include <uuids.h>
 
 namespace
 {
@@ -11,6 +10,8 @@ namespace
     constexpr LONG kOpenStateClosed = 0;
     constexpr LONG kOpenStateOpen = 6;
     constexpr WCHAR kTypeLibraryResourceSuffix[] = L"\\101";
+    constexpr CLSID kNullRendererClassId =
+        {0xC1F400A4, 0x3F08, 0x11D3, {0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37}};
 
     HRESULT LoadEmbeddedTypeInfo(REFGUID typeInfoId, ITypeInfo** typeInfo) noexcept
     {
@@ -65,7 +66,7 @@ namespace
 
         ATL::CComPtr<IBaseFilter> nullRenderer;
         hr = CoCreateInstance(
-            CLSID_NullRenderer, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&nullRenderer));
+            kNullRendererClassId, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&nullRenderer));
         if (FAILED(hr))
         {
             return hr;
