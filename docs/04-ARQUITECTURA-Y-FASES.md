@@ -35,6 +35,12 @@ prueba el mecanismo en el host de prueba; no demuestra todavía la activación
 en el ejecutable original de Gold ni resuelve la integración sin modificar sus
 archivos.
 
+El control carga el Type Library embebido usando el recurso 101 para que
+`IDispatch` y `IProvideClassInfo2` no dependan del registro global. En Windows
+Server sin hardware de audio, DirectShow se prueba con `Null Renderer`; ese
+resultado solo acredita reproducción silenciosa, temporización y eventos, no
+salida audible.
+
 El diagnóstico V12 se mantendrá en un target separado. El usuario confirma
 que su ZIP existe, pero el archivo no está materializado en esta sesión; no se
 ha copiado ni mezclado código diagnóstico con el ActiveX.

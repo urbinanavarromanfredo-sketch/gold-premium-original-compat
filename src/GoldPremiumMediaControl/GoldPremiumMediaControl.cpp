@@ -47,6 +47,64 @@ namespace
         }
         return typeLibrary->GetTypeInfoOfGuid(typeInfoId, typeInfo);
     }
+
+    HRESULT RenderAudioWithoutDevice(IGraphBuilder* graph, BSTR fileName) noexcept
+    {
+        if (graph == nullptr)
+        {
+            return E_POINTER;
+        }
+
+        ATL::CComPtr<IBaseFilter> source;
+        HRESULT hr = graph->AddSourceFilter(fileName, L"Media file", &source);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
+        ATL::CComPtr<IBaseFilter> nullRenderer;
+        hr = CoCreateInstance(
+            CLSID_NullRenderer, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&nullRenderer));
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+        hr = graph->AddFilter(nullRenderer, L"Null audio renderer");
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
+        ATL::CComPtr<IEnumPins> pins;
+        hr = source->EnumPins(&pins);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
+        ULONG renderedOutputs = 0;
+        ATL::CComPtr<IPin> pin;
+        while (pins->Next(1, &pin, nullptr) == S_OK)
+        {
+            PIN_DIRECTION direction = PINDIR_INPUT;
+            hr = pin->QueryDirection(&direction);
+            if (FAILED(hr))
+            {
+                return hr;
+            }
+            if (direction == PINDIR_OUTPUT)
+            {
+                hr = graph->Render(pin);
+                if (FAILED(hr))
+                {
+                    return hr;
+                }
+                ++renderedOutputs;
+            }
+            pin.Release();
+        }
+        return renderedOutputs == 0 ? VFW_E_NOT_FOUND : S_OK;
+    }
 }
 
 CMediaPlayer::CMediaPlayer() noexcept
@@ -411,6 +469,19 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
     }
 
     hr = graph->RenderFile(fileName, nullptr);
+    if (hr == VFW_E_NO_AUDIO_HARDWARE)
+    {
+        graph.Release();
+        hr = CoCreateInstance(
+            CLSID_FilterGraph,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            IID_PPV_ARGS(&graph));
+        if (SUCCEEDED(hr))
+        {
+            hr = RenderAudioWithoutDevice(graph, fileName);
+        }
+    }
     if (FAILED(hr))
     {
         return hr;

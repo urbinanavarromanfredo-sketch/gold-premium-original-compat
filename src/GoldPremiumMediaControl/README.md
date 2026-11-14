@@ -13,8 +13,13 @@ los imports históricos documentados de MSDXM.OCX 1.0. Es código en desarrollo,
   volumen y balance.
 - Connection points por instancia para `PlayStateChange`, `OpenStateChange`
   y `EndOfStream`.
+- `IDispatch` y `IProvideClassInfo2` cargan el typelib incrustado desde el
+  recurso 101 de la DLL, sin depender de registro global.
 - Manifiesto de activación privada para las pruebas x86. La DLL no exporta
   `DllRegisterServer` ni escribe un registro COM global.
+- Si Windows informa `VFW_E_NO_AUDIO_HARDWARE`, el control usa `Null Renderer`
+  para conservar reloj, posición y eventos en entornos sin dispositivo de
+  audio. Ese modo es silencioso; no acredita salida audible.
 
 ## Limitaciones — no integrar todavía con Gold
 
@@ -31,6 +36,9 @@ los imports históricos documentados de MSDXM.OCX 1.0. Es código en desarrollo,
   original de Gold.
 - El host de pruebas cubre interfaces COM, estado, propiedades, persistencia,
   reproducción y eventos; no aloja el control en VB6 ni ejecuta Gold.
+- La prueba en Windows Server usa el modo silencioso solo cuando no hay
+  hardware de audio. Reproduce el MP3 y verifica temporización/eventos, pero no
+  prueba sonido audible.
 - El usuario confirmó que existe el archivo diagnóstico V12, pero no está
   materializado en los archivos accesibles de esta sesión. El diagnóstico
   debe integrarse en un target separado y no forma parte de esta DLL.
