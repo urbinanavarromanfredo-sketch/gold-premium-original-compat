@@ -174,7 +174,8 @@ namespace
                 return E_POINTER;
             }
             *object = nullptr;
-            if (iid == IID_IUnknown || iid == IID_IDispatch)
+            if (iid == IID_IUnknown || iid == IID_IDispatch ||
+                iid == DIID_MediaPlayerEvents)
             {
                 *object = static_cast<IDispatch*>(this);
                 AddRef();
