@@ -219,7 +219,7 @@ namespace
         }
     };
 
-    bool CreatePlayer(ATL::CComPtr<IDispatch>* player)
+    bool CreatePlayer(ATL::CComPtr<IDispatch>& player)
     {
         IDispatch* raw = nullptr;
         const HRESULT hr = CoCreateInstance(
@@ -229,7 +229,7 @@ namespace
         {
             return false;
         }
-        player->Attach(raw);
+        player.Attach(raw);
         return true;
     }
 
@@ -254,7 +254,7 @@ namespace
         ATL::CComPtr<IDispatch> players[3];
         for (auto& player : players)
         {
-            if (!CreatePlayer(&player)) return false;
+            if (!CreatePlayer(player)) return false;
             ATL::CComPtr<IOleObject> oleObject;
             ATL::CComPtr<IPersistStreamInit> persistence;
             if (!CheckHr(player->QueryInterface(IID_PPV_ARGS(&oleObject)), "QI IOleObject") ||
