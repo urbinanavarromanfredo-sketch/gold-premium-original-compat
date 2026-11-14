@@ -9,6 +9,7 @@ namespace
     constexpr REFERENCE_TIME kReferenceTimePerSecond = 10'000'000;
     constexpr LONG kOpenStateClosed = 0;
     constexpr LONG kOpenStateOpen = 6;
+    constexpr WCHAR kTypeLibraryResourceSuffix[] = L"\\101";
 
     HRESULT LoadEmbeddedTypeInfo(REFGUID typeInfoId, ITypeInfo** typeInfo) noexcept
     {
@@ -32,6 +33,10 @@ namespace
         if (pathLength == 0 || pathLength >= ARRAYSIZE(modulePath))
         {
             return HRESULT_FROM_WIN32(pathLength == 0 ? GetLastError() : ERROR_INSUFFICIENT_BUFFER);
+        }
+        if (wcscat_s(modulePath, ARRAYSIZE(modulePath), kTypeLibraryResourceSuffix) != 0)
+        {
+            return HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER);
         }
 
         ATL::CComPtr<ITypeLib> typeLibrary;

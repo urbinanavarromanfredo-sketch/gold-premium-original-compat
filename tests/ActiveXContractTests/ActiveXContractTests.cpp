@@ -252,6 +252,11 @@ namespace
         }
         wcscpy_s(fileName + 1, ARRAYSIZE(modulePath) - (fileName + 1 - modulePath),
             L"GoldPremium_Compat_ActiveX_x86.dll");
+        if (wcscat_s(modulePath, ARRAYSIZE(modulePath), L"\\101") != 0)
+        {
+            std::fprintf(stderr, "Could not build the embedded type library resource path.\n");
+            return false;
+        }
 
         ATL::CComPtr<ITypeLib> typeLibrary;
         if (!CheckHr(LoadTypeLibEx(modulePath, REGKIND_NONE, &typeLibrary),
