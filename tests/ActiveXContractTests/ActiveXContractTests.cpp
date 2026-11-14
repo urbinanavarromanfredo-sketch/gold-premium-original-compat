@@ -590,8 +590,8 @@ namespace
         if (passed)
         {
             std::puts(mp3Opened
-                ? "COM/OLE, persistence, three instances, MP3 playback, pause/stop, state/events, and next-track playback passed."
-                : "COM/OLE, persistence, three instances, PCM WAV playback, pause/stop, state/events, and next-track playback passed; MP3 open was unavailable.");
+                ? "COM/OLE, persistence, three instances, MP3 decode/playback, pause/stop, state/events, and next-track playback passed; audible output is not asserted."
+                : "COM/OLE, persistence, three instances, PCM WAV decode/playback, pause/stop, state/events, and next-track playback passed; MP3 open was unavailable and audible output is not asserted.");
         }
         return passed;
     }

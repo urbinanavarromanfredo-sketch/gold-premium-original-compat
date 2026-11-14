@@ -20,6 +20,11 @@ los imports históricos documentados de MSDXM.OCX 1.0. Es código en desarrollo,
 - Si Windows informa `VFW_E_NO_AUDIO_HARDWARE`, el control usa `Null Renderer`
   para conservar reloj, posición y eventos en entornos sin dispositivo de
   audio. Ese modo es silencioso; no acredita salida audible.
+- El run [43563582749](https://github.com/urbinanavarromanfredo-sketch/gold-premium-original-compat/actions/runs/43563582749)
+  pasó en Windows Server 2022: el host probó MP3 sintético, tres instancias,
+  persistencia, transporte, eventos y avance a la siguiente pista. El log
+  muestra que el runner usó `Null Renderer`; por tanto, se verificó la ruta de
+  decodificación y control, no sonido audible ni Windows 10/11.
 
 ## Limitaciones — no integrar todavía con Gold
 
@@ -37,10 +42,9 @@ los imports históricos documentados de MSDXM.OCX 1.0. Es código en desarrollo,
 - El host de pruebas cubre interfaces COM, estado, propiedades, persistencia,
   reproducción y eventos; no aloja el control en VB6 ni ejecuta Gold.
 - La prueba en Windows Server usa el modo silencioso solo cuando no hay
-  hardware de audio. Si el decodificador DirectShow del runner devuelve
-  `E_NOTIMPL` al abrir MP3, el test lo registra como no disponible y ejecuta
-  reproducción/eventos con WAV PCM; ese resultado no cuenta como prueba MP3 ni
-  prueba sonido audible.
+  hardware de audio. Un run previo devolvió `E_NOTIMPL` al abrir MP3; el run
+  actual pasó MP3 sintético con `Null Renderer`. Ningún run verifica sonido
+  audible.
 - El usuario confirmó que existe el archivo diagnóstico V12, pero no está
   materializado en los archivos accesibles de esta sesión. El diagnóstico
   debe integrarse en un target separado y no forma parte de esta DLL.

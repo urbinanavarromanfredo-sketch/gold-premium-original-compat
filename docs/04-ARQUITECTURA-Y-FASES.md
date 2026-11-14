@@ -14,18 +14,18 @@ Un servidor COM en proceso (DLL) de 32 bits, construido con C++/ATL, que conserv
 
 ## Fases de entrega
 
-- **F0 — Toolchain:** completada anteriormente para el probe, no para el ActiveX nuevo.
-- **F1 — Contrato:** el IDL inicial y los DISPIDs están en el árbol; MIDL aún debe compilarse y falta cotejo binario con el Type Library original. Las propiedades históricas del formulario siguen sin confirmar.
-- **F2 — Contenedor:** el esqueleto ATL y el host de activación privada están escritos; compilación y prueba OLE real pendientes.
-- **F3 — Audio/eventos:** implementados en código con un grafo DirectShow por instancia; falta ejecutar las pruebas x86 en Windows.
+- **F0 — Toolchain:** el probe ATL y el ActiveX/host x86 compilan en Windows Server 2022.
+- **F1 — Contrato:** el IDL y los DISPIDs compilan; falta cotejo binario con el Type Library original. Las propiedades históricas del formulario siguen sin confirmar.
+- **F2 — Contenedor:** el host x86 crea el control por activación privada, consulta interfaces OLE/COM y prueba persistencia.
+- **F3 — Audio/eventos:** pruebas x86 de MP3 sintético, tres instancias, reproducción, pausa, detención, posición, eventos y avance al siguiente archivo pasaron con Null Renderer en Windows Server 2022. No se verificó salida audible.
 - **F4 — Integración aislada:** activar COM privado desde copia de Gold; verificar interfaz, botones y modos A–D.
 - **F5 — Paquete de prueba:** incluir EXE original sin modificar y DLL solo cuando todas las pruebas tengan evidencia.
 
-Las pruebas nuevas están preparadas para el workflow, no ejecutadas todavía.
-166 métodos estándar devuelven `E_NOTIMPL`, por lo que la clase no debe
-presentarse como reemplazo compatible. Tampoco se sabe si Gold avanza al
-recibir `EndOfStream`: el test de cliente solo comprueba que un cliente pueda
-iniciar la siguiente pista al recibir ese evento.
+El run [43563582749](https://github.com/urbinanavarromanfredo-sketch/gold-premium-original-compat/actions/runs/43563582749)
+ejecutó satisfactoriamente las pruebas disponibles. 166 métodos estándar
+devuelven `E_NOTIMPL`, por lo que la clase no debe presentarse como reemplazo
+compatible. El cliente de prueba sí inicia otro archivo al recibir
+`EndOfStream`; falta comprobar el comportamiento de Gold.exe.
 
 ## Activación privada
 
@@ -36,13 +36,12 @@ en el ejecutable original de Gold ni resuelve la integración sin modificar sus
 archivos.
 
 El control carga el Type Library embebido usando el recurso 101 para que
-`IDispatch` y `IProvideClassInfo2` no dependan del registro global. En Windows
-Server sin hardware de audio, DirectShow se prueba con `Null Renderer`; ese
-resultado solo acredita reproducción silenciosa, temporización y eventos, no
-salida audible. Si el runner devuelve `E_NOTIMPL` al abrir MP3, el test informa
-la limitación y usa WAV PCM para las pruebas de reproducción/eventos; no se
-contabiliza como una prueba MP3 satisfactoria.
+`IDispatch` y `IProvideClassInfo2` no dependan del registro global. El run
+actual abrió y probó MP3 sintético en Windows Server con `Null Renderer`;
+acredita la ruta de decodificación, temporización y eventos, no salida audible.
+Un run anterior devolvió `E_NOTIMPL` al abrir MP3 y falló también al abrir el
+WAV alternativo, por lo que no acreditó reproducción.
 
-El diagnóstico V12 se mantendrá en un target separado. El usuario confirma
-que su ZIP existe, pero el archivo no está materializado en esta sesión; no se
-ha copiado ni mezclado código diagnóstico con el ActiveX.
+El diagnóstico V12 se mantendrá en un target separado. El usuario confirmó
+que su ZIP existe; el archivo todavía no está materializado en el checkout
+actual y no se ha copiado ni mezclado código diagnóstico con el ActiveX.
