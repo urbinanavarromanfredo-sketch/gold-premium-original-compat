@@ -495,6 +495,7 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
         IID_PPV_ARGS(&graph));
     if (FAILED(hr))
     {
+        TraceFailure("Create filter graph", hr);
         return hr;
     }
 
@@ -508,6 +509,10 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
             nullptr,
             CLSCTX_INPROC_SERVER,
             IID_PPV_ARGS(&graph));
+        if (FAILED(hr))
+        {
+            TraceFailure("Create headless filter graph", hr);
+        }
         if (SUCCEEDED(hr))
         {
             hr = RenderAudioWithoutDevice(graph, fileName);
@@ -527,10 +532,22 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
     ATL::CComPtr<IMediaSeeking> mediaSeeking;
     ATL::CComPtr<IMediaEventEx> mediaEvent;
     ATL::CComPtr<IBasicAudio> basicAudio;
-    if (FAILED(hr = graph.QueryInterface(&mediaControl)) ||
-        FAILED(hr = graph.QueryInterface(&mediaSeeking)) ||
-        FAILED(hr = graph.QueryInterface(&mediaEvent)))
+    hr = graph.QueryInterface(&mediaControl);
+    if (FAILED(hr))
     {
+        TraceFailure("QueryInterface IMediaControl", hr);
+        return hr;
+    }
+    hr = graph.QueryInterface(&mediaSeeking);
+    if (FAILED(hr))
+    {
+        TraceFailure("QueryInterface IMediaSeeking", hr);
+        return hr;
+    }
+    hr = graph.QueryInterface(&mediaEvent);
+    if (FAILED(hr))
+    {
+        TraceFailure("QueryInterface IMediaEventEx", hr);
         return hr;
     }
     graph.QueryInterface(&basicAudio);
@@ -541,6 +558,7 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
         reinterpret_cast<LONG_PTR>(this));
     if (FAILED(hr))
     {
+        TraceFailure("IMediaEventEx::SetNotifyWindow", hr);
         return hr;
     }
 
@@ -555,6 +573,7 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
         if (FAILED(hr = m_basicAudio->put_Volume(m_volume)) ||
             FAILED(hr = m_basicAudio->put_Balance(m_balance)))
         {
+            TraceFailure("Set basic audio properties", hr);
             CloseGraph();
             return hr;
         }
