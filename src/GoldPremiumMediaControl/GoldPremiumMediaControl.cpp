@@ -499,6 +499,7 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
         return hr;
     }
 
+    bool headlessAudio = false;
     hr = graph->RenderFile(fileName, nullptr);
     if (hr == VFW_E_NO_AUDIO_HARDWARE)
     {
@@ -516,6 +517,7 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
         if (SUCCEEDED(hr))
         {
             hr = RenderAudioWithoutDevice(graph, fileName);
+            headlessAudio = SUCCEEDED(hr);
             if (FAILED(hr))
             {
                 TraceFailure("RenderAudioWithoutDevice", hr);
@@ -551,6 +553,10 @@ HRESULT CMediaPlayer::OpenGraph(BSTR fileName) noexcept
         return hr;
     }
     graph.QueryInterface(&basicAudio);
+    if (headlessAudio)
+    {
+        basicAudio.Release();
+    }
 
     hr = mediaEvent->SetNotifyWindow(
         reinterpret_cast<OAHWND>(m_notifyWindow.m_hWnd),
